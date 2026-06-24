@@ -149,3 +149,153 @@ body {
   font-weight: 800;
   line-height: 1.2;
 }
+
+.data-card {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.data-head,
+.data-row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+}
+
+.data-head {
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.data-row {
+  min-height: 64px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #111827;
+  font-size: 13px;
+}
+
+.data-row:last-child {
+  border-bottom: 0;
+}
+
+.subscription-grid {
+  grid-template-columns: minmax(180px, 1.3fr) minmax(120px, 0.8fr) minmax(220px, 1.4fr) minmax(92px, 0.6fr) minmax(78px, 0.5fr) minmax(48px, auto);
+}
+
+.account-grid {
+  grid-template-columns: minmax(170px, 1.2fr) minmax(150px, 0.9fr) minmax(86px, 0.6fr) minmax(86px, 0.6fr) minmax(52px, 0.4fr) minmax(92px, 0.6fr) minmax(48px, auto);
+}
+
+.identity-cell {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.identity-cell strong,
+.identity-cell small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity-cell small,
+.data-row small,
+.muted-text {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.avatar {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.chip,
+.chip-stack {
+  display: inline-flex;
+  align-items: center;
+}
+
+.chip-stack {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.chip--green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.usage-stack {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.link-button:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+@media (max-width: 860px) {
+  .data-head {
+    display: none;
+  }
+
+  .subscription-grid,
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-row {
+    align-items: start;
+    gap: 10px;
+    padding: 14px;
+  }
+}
