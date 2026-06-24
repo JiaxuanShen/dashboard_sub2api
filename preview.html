@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>sub2api Dashboard Preview</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f6f8fb;
+      --card: #ffffff;
+      --line: #edf0f3;
+      --soft-line: #f3f5f7;
+      --text: #111827;
+      --muted: #6b7280;
+      --light: #9ca3af;
+      --green: #22c55e;
+      --green-bg: #c9f7df;
+      --green-text: #07833f;
+      --orange: #f97316;
+      --blue: #2563eb;
+      --track: #e5e7eb;
+      --avatar: #bdf8ed;
+      --sidebar: #f4fcfa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 232px 1fr;
+    }
+
+    .side {
+      background: var(--card);
+      border-right: 1px solid var(--line);
+      padding: 18px 14px;
+    }
+
+    .brand {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 18px;
+    }
+
+    .mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #111827;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .nav {
+      display: grid;
+      gap: 4px;
+    }
+
+    .nav-item {
+      min-height: 36px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      padding: 0 11px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #4b5563;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .nav-item.active {
+      background: var(--sidebar);
+      color: #059669;
+      font-weight: 650;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: .72;
+    }
+
+    main {
+      padding: 18px 18px 28px;
+    }
+
+    .topbar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+      font-weight: 720;
+    }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input {
+      width: 260px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      padding: 0 11px;
+      font-size: 13px;
+    }
+
+    .button {
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      padding: 0 12px;
+      color: #374151;
+      font-size: 13px;
+    }
+
+    .button.primary {
+      border-color: #10b981;
+      background: #10b981;
+      color: white;
+      font-weight: 650;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: #4b5563;
+      padding: 0 13px;
+      font-size: 13px;
+    }
+
+    .tab.active {
+      border-color: #a7f3d0;
+      background: var(--sidebar);
+      color: #059669;
+      font-weight: 650;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 13px 14px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .summary-card strong {
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .list {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .list-head {
+      height: 42px;
+      display: grid;
+      grid-template-columns: 2.1fr 1fr 2.6fr 1.1fr .9fr 1.2fr;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .list-head.account-head,
+    .row.account-row {
+      grid-template-columns: 1.7fr 1.15fr .9fr 1.1fr .7fr 1.1fr 1.5fr 1.05fr 1fr;
+    }
+
+    .row {
+      min-height: 106px;
+      display: grid;
+      grid-template-columns: 2.1fr 1fr 2.6fr 1.1fr .9fr 1.2fr;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--soft-line);
+      background: white;
+    }
+
+    .row:last-child { border-bottom: 0; }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--avatar);
+      color: #058a71;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      flex: 0 0 auto;
+    }
+
+    .email {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      color: #111827;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .plan {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      width: max-content;
+      border-radius: 6px;
+      padding: 0 8px;
+      background: var(--green-bg);
+      color: var(--green-text);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .plan.gray {
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .plan.blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .mini {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      border-radius: 5px;
+      padding: 0 6px;
+      background: #dcfce7;
+      color: #047857;
+      font-size: 11px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .mini.gray {
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .mini.amber {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .mini.blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .capacity {
+      display: grid;
+      gap: 4px;
+      align-content: center;
+      font-size: 11px;
+      color: #4b5563;
+    }
+
+    .capacity-pill {
+      width: max-content;
+      min-height: 20px;
+      border-radius: 5px;
+      padding: 2px 6px;
+      background: #f3f4f6;
+      color: #4b5563;
+      font-weight: 650;
+    }
+
+    .today {
+      display: grid;
+      gap: 3px;
+      font-size: 11px;
+      color: #4b5563;
+    }
+
+    .today strong {
+      font-weight: 650;
+      color: #374151;
+    }
+
+    .switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border-radius: 999px;
+      background: #14b8a6;
+      display: inline-block;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,.18);
+    }
+
+    .switch.off {
+      background: #d1d5db;
+    }
+
+    .switch.off::after {
+      right: auto;
+      left: 3px;
+    }
+
+    .usage {
+      display: grid;
+      gap: 10px;
+      padding-right: 22px;
+    }
+
+    .usage-line {
+      display: grid;
+      grid-template-columns: 34px minmax(160px, 1fr) 92px;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .usage-label {
+      color: #374151;
+      text-align: right;
+    }
+
+    .progress {
+      height: 4px;
+      border-radius: 999px;
+      background: var(--track);
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .progress.orange span { background: var(--orange); }
+    .progress.green span { background: var(--green); }
+    .progress.blue span { background: var(--blue); }
+
+    .amount {
+      color: #4b5563;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .reset {
+      margin-left: 44px;
+      color: var(--blue);
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .date {
+      display: grid;
+      gap: 3px;
+      color: #374151;
+      font-size: 13px;
+    }
+
+    .date span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status {
+      justify-self: start;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 2px 10px;
+      background: var(--green-bg);
+      color: var(--green-text);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .status.warn {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .ops {
+      display: flex;
+      justify-content: flex-end;
+      gap: 18px;
+      color: #6b7280;
+      font-size: 11px;
+    }
+
+    .op {
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      color: #6b7280;
+    }
+
+    @media (max-width: 1120px) {
+      .app { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .list { overflow-x: auto; }
+      .list-head, .row { min-width: 1040px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><span class="mark">S</span>sub2api</div>
+      <nav class="nav" aria-label="Admin navigation">
+        <button class="nav-item"><span class="dot"></span>概览</button>
+        <button class="nav-item active"><span class="dot"></span>订阅管理</button>
+        <button class="nav-item active"><span class="dot"></span>账户管理</button>
+        <button class="nav-item"><span class="dot"></span>用量记录</button>
+        <button class="nav-item"><span class="dot"></span>设置</button>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="topbar">
+        <h1>订阅管理</h1>
+        <div class="tools">
+          <div class="input">搜索邮箱 / 套餐 / 状态</div>
+          <button class="button">筛选</button>
+          <button class="button primary">刷新</button>
+        </div>
+      </section>
+
+      <section class="summary">
+        <div class="summary-card"><span>生效订阅</span><strong>128</strong></div>
+        <div class="summary-card"><span>总账户</span><strong>46</strong></div>
+        <div class="summary-card"><span>今日总消耗</span><strong>$378.68</strong></div>
+        <div class="summary-card"><span>本月总消耗</span><strong>$829.76</strong></div>
+      </section>
+
+      <section class="tabs" aria-label="Dashboard sections">
+        <button class="tab active">订阅管理</button>
+        <button class="tab active">账户管理</button>
+        <button class="tab">用量记录</button>
+      </section>
+
+      <section class="list" aria-label="Subscription list">
+        <div class="list-head">
+          <div>账户</div>
+          <div>套餐</div>
+          <div>用量</div>
+          <div>到期时间</div>
+          <div>状态</div>
+          <div style="text-align:right">操作</div>
+        </div>
+
+        <article class="row">
+          <div class="account">
+            <div class="avatar">S</div>
+            <div class="email">shevbing@hotmail.com</div>
+          </div>
+          <div><span class="plan">企业月卡</span></div>
+          <div class="usage">
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">每周</div>
+                <div class="progress orange"><span style="width: 76%"></span></div>
+                <div class="amount">$378.68 / $500.00</div>
+              </div>
+              <div class="reset">8 小时 27 分钟后重置</div>
+            </div>
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">每月</div>
+                <div class="progress green"><span style="width: 42%"></span></div>
+                <div class="amount">$829.76 / $2000.00</div>
+              </div>
+              <div class="reset">9 天 8 小时后重置</div>
+            </div>
+          </div>
+          <div class="date">2026/07/04<span>10 天剩余</span></div>
+          <div><span class="status">生效中</span></div>
+          <div class="ops">
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>
+              <span>调整</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12A9 9 0 0 1 18.5 5.8"/><path d="M18 3v4h4M6 21v-4H2"/></svg>
+              <span>重置配额</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/></svg>
+              <span>撤销</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="row">
+          <div class="account">
+            <div class="avatar">A</div>
+            <div class="email">alpha-team@example.com</div>
+          </div>
+          <div><span class="plan">企业月卡</span></div>
+          <div class="usage">
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">每周</div>
+                <div class="progress blue"><span style="width: 38%"></span></div>
+                <div class="amount">$189.20 / $500.00</div>
+              </div>
+              <div class="reset">2 天 3 小时后重置</div>
+            </div>
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">每月</div>
+                <div class="progress green"><span style="width: 27%"></span></div>
+                <div class="amount">$541.10 / $2000.00</div>
+              </div>
+              <div class="reset">16 天 5 小时后重置</div>
+            </div>
+          </div>
+          <div class="date">2026/08/12<span>49 天剩余</span></div>
+          <div><span class="status">生效中</span></div>
+          <div class="ops">
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>
+              <span>调整</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12A9 9 0 0 1 18.5 5.8"/><path d="M18 3v4h4M6 21v-4H2"/></svg>
+              <span>重置配额</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/></svg>
+              <span>撤销</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="list" aria-label="Account list">
+        <div class="list-head account-head">
+          <div>名称</div>
+          <div>平台/类型</div>
+          <div>容量</div>
+          <div>状态</div>
+          <div>调度</div>
+          <div>今日统计</div>
+          <div>用量窗口</div>
+          <div>到期</div>
+          <div style="text-align:right">操作</div>
+        </div>
+
+        <article class="row account-row">
+          <div class="account">
+            <div class="avatar">O</div>
+            <div>
+              <div class="email">openai-main</div>
+              <div class="meta">sk-proj-••••••••••••89af · 主要池</div>
+            </div>
+          </div>
+          <div class="badges">
+            <span class="mini">OpenAI</span>
+            <span class="mini">OAuth</span>
+            <span class="mini gray">Pro</span>
+            <span class="mini blue">Compact Auto</span>
+          </div>
+          <div class="capacity">
+            <span class="capacity-pill">286 req</span>
+            <span class="capacity-pill">18.8M tok</span>
+            <span class="capacity-pill">A $27.31</span>
+          </div>
+          <div>
+            <span class="status">正常</span>
+            <span class="mini amber" style="margin-left:6px">429</span>
+          </div>
+          <div><span class="switch" aria-label="调度已开启"></span></div>
+          <div class="today">
+            <div>请求: <strong>9.2K</strong></div>
+            <div>Token: <strong>902.1M</strong></div>
+            <div>计费: <strong>$959.61</strong></div>
+          </div>
+          <div class="usage">
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">5h</div>
+                <div class="progress orange"><span style="width: 82%"></span></div>
+                <div class="amount">7% 2h 44m</div>
+              </div>
+              <div class="reset">主动查询 · 次数</div>
+            </div>
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">7d</div>
+                <div class="progress green"><span style="width: 58%"></span></div>
+                <div class="amount">35% 15h 52m</div>
+              </div>
+              <div class="reset">重置</div>
+            </div>
+          </div>
+          <div class="date">2026/07/01<span>过期自动暂停调度</span></div>
+          <div class="ops">
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span>编辑</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+              <span>删除</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+              <span>更多</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="row account-row">
+          <div class="account">
+            <div class="avatar">C</div>
+            <div>
+              <div class="email">claude-backup</div>
+              <div class="meta">console-account · 备用池</div>
+            </div>
+          </div>
+          <div class="badges">
+            <span class="mini gray">Anthropic</span>
+            <span class="mini">OAuth</span>
+            <span class="mini gray">Private</span>
+          </div>
+          <div class="capacity">
+            <span class="capacity-pill">5 / 20</span>
+            <span class="capacity-pill">$8.40 / $20</span>
+            <span class="capacity-pill">RPM 7 / 60</span>
+          </div>
+          <div><span class="status warn">临时不可调度</span></div>
+          <div><span class="switch off" aria-label="调度已关闭"></span></div>
+          <div class="today">
+            <div>请求: <strong>1.7K</strong></div>
+            <div>Token: <strong>88.4M</strong></div>
+            <div>计费: <strong>$74.23</strong></div>
+          </div>
+          <div class="usage">
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">5h</div>
+                <div class="progress blue"><span style="width: 31%"></span></div>
+                <div class="amount">31% 1h 08m</div>
+              </div>
+              <div class="reset">被动采样 · 主动查询</div>
+            </div>
+            <div>
+              <div class="usage-line">
+                <div class="usage-label">7d</div>
+                <div class="progress green"><span style="width: 24%"></span></div>
+                <div class="amount">24% 2d 4h</div>
+              </div>
+              <div class="reset">Sonnet 窗口 18%</div>
+            </div>
+          </div>
+          <div class="date">2026/08/12<span>49 天剩余</span></div>
+          <div class="ops">
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span>编辑</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+              <span>删除</span>
+            </div>
+            <div class="op">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+              <span>更多</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
