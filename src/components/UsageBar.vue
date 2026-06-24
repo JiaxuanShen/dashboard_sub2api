@@ -10,5 +10,8 @@
 import { computed } from 'vue'
 
 const props = defineProps<{ label: string; percent: number; amount: string }>()
-const safePercent = computed(() => Math.max(0, Math.min(100, props.percent)))
+const safePercent = computed(() => {
+  if (!Number.isFinite(props.percent)) return 0
+  return Math.max(0, Math.min(100, props.percent))
+})
 </script>

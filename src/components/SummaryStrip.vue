@@ -1,6 +1,6 @@
 <template>
   <dl class="summary-strip">
-    <div v-for="item in items" :key="item.label" class="summary-strip__item">
+    <div v-for="(item, index) in items" :key="`${item.label}-${index}`" class="summary-strip__item">
       <dt class="summary-strip__label">{{ item.label }}</dt>
       <dd class="summary-strip__value">{{ item.value }}</dd>
     </div>
