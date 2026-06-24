@@ -10,7 +10,7 @@ const buildUrl = (path: string, params?: RequestOptions['params']) => {
     if (value !== undefined && value !== null && value !== '') search.set(key, String(value))
   }
   const query = search.toString()
-  return query ? `${path}?${query}` : path
+  return query ? `${path}${path.includes('?') ? '&' : '?'}${query}` : path
 }
 
 export function createApiClient(fetcher: FetchLike = fetch) {

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createApiClient } from '@/api/client'
 import { createDashboardApi } from '@/api/dashboard'
 
 afterEach(() => {
@@ -6,6 +7,20 @@ afterEach(() => {
 })
 
 describe('dashboard api', () => {
+  it('appends params to paths that already include a query string', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true })
+    })
+    const api = createApiClient(fetchMock)
+
+    await api.get('/dashboard-api/subscriptions?existing=1', { params: { page: 2 } })
+
+    expect(fetchMock).toHaveBeenCalledWith('/dashboard-api/subscriptions?existing=1&page=2', {
+      headers: { Accept: 'application/json' }
+    })
+  })
+
   it('loads subscriptions from the dashboard proxy path', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
