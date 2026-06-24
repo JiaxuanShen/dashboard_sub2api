@@ -1,0 +1,14 @@
+[Unit]
+Description=dashboard_sub2api
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/dashboard_sub2api
+EnvironmentFile=/etc/dashboard_sub2api.env
+ExecStart=/usr/bin/node /opt/dashboard_sub2api/server.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

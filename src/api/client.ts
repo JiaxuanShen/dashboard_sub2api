@@ -4,6 +4,16 @@ export interface RequestOptions {
   params?: Record<string, string | number | boolean | null | undefined>
 }
 
+export interface ApiEnvelope<T> {
+  code: number
+  message?: string
+  data: T
+}
+
+export function isApiEnvelope<T>(value: unknown): value is ApiEnvelope<T> {
+  return typeof value === 'object' && value !== null && 'code' in value && 'data' in value
+}
+
 const buildUrl = (path: string, params?: RequestOptions['params']) => {
   const search = new URLSearchParams()
   for (const [key, value] of Object.entries(params ?? {})) {
@@ -21,7 +31,14 @@ export function createApiClient(fetcher: FetchLike = fetch) {
     if (!response.ok) {
       throw new Error(`API 请求失败: ${response.status} ${response.statusText}`)
     }
-    return response.json() as Promise<T>
+
+    const payload = await response.json()
+    if (isApiEnvelope<T>(payload)) {
+      if (payload.code !== 0) throw new Error(`API 请求失败: ${payload.message || payload.code}`)
+      return payload.data
+    }
+
+    return payload as T
   }
 
   return { get }

@@ -46,4 +46,38 @@ describe('dashboard api', () => {
 
     await expect(api.listAccounts({ page: 1, pageSize: 20 })).rejects.toThrow('API 请求失败: 401 Unauthorized')
   })
+
+  it('unwraps successful Sub2API envelopes', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 0,
+        message: 'success',
+        data: { items: [], total: 0, page: 1, page_size: 20, total_pages: 0 }
+      })
+    })
+    const api = createDashboardApi(fetchMock)
+
+    await expect(api.listAccounts({ page: 1, pageSize: 20 })).resolves.toEqual({
+      items: [],
+      total: 0,
+      page: 1,
+      page_size: 20,
+      total_pages: 0
+    })
+  })
+
+  it('throws the Sub2API message when an envelope reports failure', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 401,
+        message: 'INVALID_ADMIN_KEY',
+        data: null
+      })
+    })
+    const api = createDashboardApi(fetchMock)
+
+    await expect(api.listAccounts({ page: 1, pageSize: 20 })).rejects.toThrow('API 请求失败: INVALID_ADMIN_KEY')
+  })
 })
