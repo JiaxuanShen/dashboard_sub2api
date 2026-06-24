@@ -263,7 +263,8 @@ body {
   min-width: 0;
 }
 
-.link-button {
+.link-button,
+.readonly-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -276,6 +277,11 @@ body {
   font: inherit;
   font-size: 13px;
   font-weight: 800;
+}
+
+.readonly-action {
+  color: #6b7280;
+  cursor: default;
 }
 
 .link-button:hover {

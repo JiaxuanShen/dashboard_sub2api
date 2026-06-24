@@ -28,7 +28,7 @@
       <StatusBadge :label="accountStatusLabel(row)" :tone="resolveAccountStatus(row).tone" />
       <ReadonlySwitch :model-value="row.schedulable" />
       <span>{{ formatDateOnly(row.expires_at) }}</span>
-      <button class="link-button" type="button">详情</button>
+      <span class="readonly-action">详情</span>
     </div>
   </section>
 </template>

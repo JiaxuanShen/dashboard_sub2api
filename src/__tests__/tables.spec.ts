@@ -37,6 +37,48 @@ const revokedSubscription: UserSubscription = {
   },
 }
 
+const dailyOnlySubscription: UserSubscription = {
+  ...activeSubscription,
+  id: 3,
+  user_id: 12,
+  daily_usage_usd: 7,
+  weekly_usage_usd: null,
+  monthly_usage_usd: null,
+  user: {
+    id: 12,
+    email: 'daily@example.com',
+    username: 'daily-user',
+  },
+  group: {
+    id: 21,
+    name: '日卡',
+    daily_limit_usd: 20,
+    weekly_limit_usd: null,
+    monthly_limit_usd: null,
+  },
+}
+
+const unlimitedSubscription: UserSubscription = {
+  ...activeSubscription,
+  id: 4,
+  user_id: 13,
+  daily_usage_usd: null,
+  weekly_usage_usd: null,
+  monthly_usage_usd: null,
+  user: {
+    id: 13,
+    email: 'unlimited@example.com',
+    username: 'unlimited-user',
+  },
+  group: {
+    id: 22,
+    name: '无限套餐',
+    daily_limit_usd: null,
+    weekly_limit_usd: null,
+    monthly_limit_usd: null,
+  },
+}
+
 const activeOpenAiAccount: Account = {
   id: 1,
   name: 'openai-main',
@@ -64,6 +106,13 @@ const activeOpenAiAccount: Account = {
   session_window_status: 'allowed',
 }
 
+const inactiveOpenAiAccount: Account = {
+  ...activeOpenAiAccount,
+  id: 2,
+  name: 'openai-paused',
+  status: 'inactive',
+}
+
 describe('read-only dashboard tables', () => {
   it('renders an active subscription row', () => {
     const wrapper = mount(SubscriptionTable, { props: { rows: [activeSubscription] } })
@@ -73,12 +122,25 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('生效中')
   })
 
-  it('renders revoked subscriptions as expired without mutating labels', () => {
+  it('renders revoked subscriptions as invalid without mutating labels', () => {
     const wrapper = mount(SubscriptionTable, { props: { rows: [revokedSubscription] } })
 
     expect(wrapper.text()).toContain('revoked@example.com')
     expect(wrapper.text()).toContain('已失效')
     expect(wrapper.text()).not.toContain('撤销')
+  })
+
+  it('renders daily-only subscription usage without showing unlimited', () => {
+    const wrapper = mount(SubscriptionTable, { props: { rows: [dailyOnlySubscription] } })
+
+    expect(wrapper.text()).toContain('每日')
+    expect(wrapper.text()).not.toContain('无限制')
+  })
+
+  it('renders unlimited for subscriptions without usage limits', () => {
+    const wrapper = mount(SubscriptionTable, { props: { rows: [unlimitedSubscription] } })
+
+    expect(wrapper.text()).toContain('无限制')
   })
 
   it('renders an active OpenAI OAuth account row', () => {
@@ -87,6 +149,23 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('openai-main')
     expect(wrapper.text()).toContain('OpenAI')
     expect(wrapper.text()).toContain('正常')
+  })
+
+  it('renders inactive account status', () => {
+    const wrapper = mount(AccountTable, { props: { rows: [inactiveOpenAiAccount] } })
+
+    expect(wrapper.text()).toContain('openai-paused')
+    expect(wrapper.text()).toContain('停用')
+  })
+
+  it('does not render inert detail buttons in table components', () => {
+    const subscription = mount(SubscriptionTable, {
+      props: { rows: [activeSubscription] },
+    })
+    const account = mount(AccountTable, { props: { rows: [activeOpenAiAccount] } })
+
+    expect(subscription.findAll('button')).toHaveLength(0)
+    expect(account.findAll('button')).toHaveLength(0)
   })
 
   it('does not render mutating action labels', () => {

@@ -25,6 +25,12 @@
 
       <div class="usage-stack">
         <UsageBar
+          v-if="hasLimit(row.group?.daily_limit_usd)"
+          label="每日"
+          :percent="progressPercent(row.daily_usage_usd, row.group?.daily_limit_usd).width"
+          :amount="usageAmount(row.daily_usage_usd, row.group?.daily_limit_usd)"
+        />
+        <UsageBar
           v-if="hasLimit(row.group?.weekly_limit_usd)"
           label="周"
           :percent="progressPercent(row.weekly_usage_usd, row.group?.weekly_limit_usd).width"
@@ -41,7 +47,7 @@
 
       <span>{{ formatDateOnly(row.expires_at) }}</span>
       <StatusBadge :label="subscriptionStatus[row.status].label" :tone="subscriptionStatus[row.status].tone" />
-      <button class="link-button" type="button">详情</button>
+      <span class="readonly-action">详情</span>
     </div>
   </section>
 </template>
@@ -64,7 +70,9 @@ const subscriptionStatus = {
 const hasLimit = (limit: number | null | undefined) => typeof limit === 'number' && Number.isFinite(limit) && limit > 0
 
 const hasUsageLimit = (row: UserSubscription) =>
-  hasLimit(row.group?.weekly_limit_usd) || hasLimit(row.group?.monthly_limit_usd)
+  hasLimit(row.group?.daily_limit_usd) ||
+  hasLimit(row.group?.weekly_limit_usd) ||
+  hasLimit(row.group?.monthly_limit_usd)
 
 const usageAmount = (used: number | null | undefined, limit: number | null | undefined) =>
   `${formatCurrency(used)} / ${formatCurrency(limit)}`
