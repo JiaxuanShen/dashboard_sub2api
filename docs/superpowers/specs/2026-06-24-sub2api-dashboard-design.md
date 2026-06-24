@@ -1,155 +1,155 @@
-# sub2api Read-Only Dashboard Design
+# sub2api 只读 Dashboard 设计
 
-## Context
+## 背景
 
-This repository will hold a separate dashboard for viewing selected `sub2api` admin data. GitHub is only for source control. The dashboard will be deployed on the same server as `sub2api`, not on GitHub Pages.
+这个仓库用于维护一个独立的 `sub2api` 管理数据浏览面板。GitHub 只用于源码管理，不用于页面托管。Dashboard 最终会部署在 `sub2api` 同一台服务器上，而不是 GitHub Pages。
 
-The upstream reference code is kept locally under `.upstream/sub2api` and is ignored by git.
+上游 `sub2api` 代码只作为本地参考，放在 `.upstream/sub2api`，并通过 `.gitignore` 排除，不会提交到本仓库。
 
-## Goal
+## 目标
 
-Build a read-only web dashboard focused on two admin areas:
+构建一个只读 Web Dashboard，聚焦两个 admin 场景：
 
-- Subscription management visibility
-- Account management visibility, especially total account usage
+- 订阅管理浏览
+- 账户管理浏览，重点展示总账户/API 账户的用量
 
-The UI should stay visually close to the existing `sub2api` admin style: compact table rows, light background, green status badges, small platform/type chips, usage progress bars, and right-aligned table actions.
+界面风格尽量贴近 `sub2api` 现有 Admin：紧凑表格行、浅色背景、绿色状态徽标、小型平台/类型标签、用量进度条、右侧操作区。
 
-## Non-Goals
+## 非目标
 
-The first version will not provide write operations:
+第一版不提供写操作：
 
-- No edit
-- No delete
-- No revoke
-- No quota reset
-- No schedulable toggle
-- No subscription assignment
-- No account credential refresh
+- 不编辑
+- 不删除
+- 不撤销订阅
+- 不重置配额
+- 不切换调度状态
+- 不分配订阅
+- 不刷新账户凭据
 
-The dashboard is a browsing and monitoring surface. It may include safe actions such as refresh, search, filter, sort, pagination, and opening read-only detail panels.
+这个 Dashboard 是浏览和监控窗口。可以保留低风险操作，例如刷新、搜索、筛选、排序、分页，以及打开只读详情面板。
 
-## Deployment Model
+## 部署模型
 
-The built frontend will be served from the same server as `sub2api`, for example:
+构建后的前端部署在 `sub2api` 同一台服务器，例如：
 
 ```text
 https://example.com/dashboard/
 ```
 
-The server will expose a reverse-proxy path for dashboard API calls:
+服务器提供一个 Dashboard 专用反向代理路径：
 
 ```text
 /dashboard-api/* -> http://127.0.0.1:<sub2api-port>/api/admin/*
 ```
 
-The admin token must stay on the server side. The browser should not receive or store the admin token. Nginx, Caddy, or another local proxy will inject the required admin authentication header.
+Admin token 必须只保存在服务器侧。浏览器不接收、不保存 admin token。Nginx、Caddy 或其他本地代理负责注入 admin 认证请求头。
 
-## Data Sources
+## 数据来源
 
-Use existing upstream admin endpoints through the proxy path.
+通过代理路径复用上游现有 admin API。
 
-Subscriptions:
+订阅相关：
 
 - `GET /dashboard-api/subscriptions`
-- Optional later: `GET /dashboard-api/subscriptions/{id}/progress`
+- 可选增强：`GET /dashboard-api/subscriptions/{id}/progress`
 
-Accounts:
+账户相关：
 
 - `GET /dashboard-api/accounts`
 - `GET /dashboard-api/accounts/{id}/usage`
-- `GET /dashboard-api/accounts/batch-today-stats` or the upstream equivalent if available in the deployed version
+- `GET /dashboard-api/accounts/batch-today-stats`，或当前部署版本中等价的上游接口
 
-The implementation should keep endpoint access centralized in a small API client so future upstream path changes are easy to adjust.
+实现时应把 API 访问集中在一个小型客户端模块中，方便后续适配上游接口变更。
 
-## Subscription View
+## 订阅视图
 
-The subscription table should follow upstream `SubscriptionsView.vue` concepts:
+订阅表参考上游 `SubscriptionsView.vue` 的概念：
 
-- User identity: email or username, with avatar initial
-- Group or plan badge
-- Usage windows: daily, weekly, monthly where limits exist
-- Expiration: date and remaining days
-- Status: `active`, `expired`, `revoked`
-- Read-only actions: view detail, copy related identifier, refresh row if useful
+- 用户身份：邮箱或用户名，带首字母头像
+- 分组或套餐标签
+- 用量窗口：在存在限额时展示每日、每周、每月用量
+- 到期时间：日期和剩余天数
+- 状态：`active`、`expired`、`revoked`
+- 只读操作：查看详情、复制相关标识、必要时刷新单行
 
-Subscription status should not be reused for account status.
+订阅状态不能复用到账户状态上。
 
-## Account View
+## 账户视图
 
-The account table should follow upstream `AccountsView.vue` concepts:
+账户表参考上游 `AccountsView.vue` 的概念：
 
-- Name and secondary identity such as email or account metadata
-- Platform/type badges: `openai`, `anthropic`, `gemini`, `antigravity`; `oauth`, `apikey`, `setup-token`, etc.
-- Capacity indicators: concurrency, window cost limit, sessions, RPM, daily/weekly/total quota where present
-- Account status based on upstream semantics:
-  - `status`: `active`, `inactive`, `error`
-  - runtime limited states: rate-limited, overloaded, temporary unschedulable
-  - `schedulable`: displayed as read-only on/off state
-  - expiration and `auto_pause_on_expired`
-- Today stats: requests, tokens, account cost, user/API-key billed cost
-- Usage windows: 5h, 7d, Sonnet or provider-specific windows where upstream data provides them
-- Read-only actions: view detail, copy identifier, refresh usage
+- 名称和次级身份，例如邮箱或账户元数据
+- 平台/类型标签：`openai`、`anthropic`、`gemini`、`antigravity`；`oauth`、`apikey`、`setup-token` 等
+- 容量指标：并发、窗口费用上限、会话数、RPM、每日/每周/总配额等，按字段存在情况展示
+- 账户状态使用上游语义：
+  - `status`：`active`、`inactive`、`error`
+  - 运行时受限状态：限流中、过载中、临时不可调度
+  - `schedulable`：以只读开关状态展示是否参与调度
+  - 到期时间和 `auto_pause_on_expired`
+- 今日统计：请求数、Token 数、账户成本、用户/API Key 计费成本
+- 用量窗口：5h、7d、Sonnet 或其他平台特定窗口，按上游数据展示
+- 只读操作：查看详情、复制标识、刷新用量
 
-Account status and subscription status should share table layout patterns, not state labels.
+账户状态和订阅状态只共享表格布局模式，不共享状态文案和状态判断逻辑。
 
-## UI Structure
+## UI 结构
 
-The first screen should be the working dashboard, not a landing page.
+首屏直接展示可用 Dashboard，不做落地页。
 
-Layout:
+布局：
 
-- Left navigation with `sub2api`-style admin sections
-- Top toolbar with title, search, filters, and refresh
-- Summary strip with key read-only counts
-- Tabs or segmented controls for:
-  - Subscriptions
-  - Accounts
-  - Usage records, optional in a later iteration
-- Dense, horizontally scannable tables
-- Read-only detail drawer or modal for row inspection
+- 左侧导航，贴近 `sub2api` Admin 区域结构
+- 顶部工具栏，包含标题、搜索、筛选和刷新
+- 顶部汇总条，展示关键只读计数
+- Tab 或分段控件：
+  - 订阅管理
+  - 账户管理
+  - 用量记录，后续迭代可选
+- 高密度、便于横向扫读的表格
+- 只读详情抽屉或弹窗，用于查看行详情
 
-Avoid large decorative cards or marketing-style hero sections. The dashboard should feel like an operational admin surface.
+避免大面积装饰卡片或营销式 Hero。整体应是运维/管理后台风格。
 
-## Error Handling
+## 错误处理
 
-Show clear inline states for:
+需要清晰展示以下状态：
 
-- Proxy/API unavailable
-- Unauthorized or token rejected by server-side proxy
-- Empty result sets
-- Partial failures when account usage windows fail but the account list loads
-- Slow loading or refresh in progress
+- 代理或 API 不可用
+- 服务器侧 token 被拒绝或未授权
+- 空结果
+- 部分失败，例如账户列表加载成功，但账户用量窗口加载失败
+- 加载中或刷新中
 
-Do not expose the admin token in UI errors.
+错误信息不能暴露 admin token。
 
-## Security
+## 安全要求
 
-The frontend must not contain an admin token at build time or runtime.
+前端在构建时和运行时都不能包含 admin token。
 
-The deployment README should explain:
+部署 README 需要说明：
 
-- How to configure the reverse proxy
-- Where to place the admin token on the server
-- Why GitHub Pages and frontend environment variables are not suitable for this token
+- 如何配置反向代理
+- admin token 放在服务器哪里
+- 为什么 GitHub Pages 和前端环境变量不适合保存这个 token
 
-## Testing And Verification
+## 测试与验证
 
-The implementation should include:
+实现阶段应包含：
 
-- Type checks or build verification
-- API client tests for mapping upstream response shapes into view models
-- Component tests for status mapping, especially account state precedence
-- Manual preview check in browser for desktop width and narrower screens
+- 类型检查或构建验证
+- API 客户端测试，确保上游响应能正确映射为视图模型
+- 组件测试，重点覆盖账户状态优先级
+- 浏览器手动预览，检查桌面宽度和较窄屏幕下的展示
 
-Status precedence should be tested for accounts:
+账户状态优先级需要测试：
 
-1. Overloaded
-2. Rate-limited
-3. Temporary unschedulable
-4. Error
-5. Unschedulable
-6. Inactive
-7. Active
+1. 过载中
+2. 限流中
+3. 临时不可调度
+4. 错误
+5. 不可调度
+6. 停用
+7. 正常
 
-This order reflects the need to surface runtime blockers before ordinary base status in a monitoring dashboard.
+这个顺序用于在监控视图中优先暴露运行时阻塞状态，再展示基础状态。
