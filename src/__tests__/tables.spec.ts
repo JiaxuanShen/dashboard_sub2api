@@ -25,6 +25,18 @@ const activeSubscription: UserSubscription = {
   },
 }
 
+const revokedSubscription: UserSubscription = {
+  ...activeSubscription,
+  id: 2,
+  user_id: 11,
+  status: 'revoked',
+  user: {
+    id: 11,
+    email: 'revoked@example.com',
+    username: 'revoked-user',
+  },
+}
+
 const activeOpenAiAccount: Account = {
   id: 1,
   name: 'openai-main',
@@ -61,6 +73,14 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('生效中')
   })
 
+  it('renders revoked subscriptions as expired without mutating labels', () => {
+    const wrapper = mount(SubscriptionTable, { props: { rows: [revokedSubscription] } })
+
+    expect(wrapper.text()).toContain('revoked@example.com')
+    expect(wrapper.text()).toContain('已失效')
+    expect(wrapper.text()).not.toContain('撤销')
+  })
+
   it('renders an active OpenAI OAuth account row', () => {
     const wrapper = mount(AccountTable, { props: { rows: [activeOpenAiAccount] } })
 
@@ -70,10 +90,12 @@ describe('read-only dashboard tables', () => {
   })
 
   it('does not render mutating action labels', () => {
-    const subscription = mount(SubscriptionTable, { props: { rows: [activeSubscription] } })
+    const subscription = mount(SubscriptionTable, {
+      props: { rows: [activeSubscription, revokedSubscription] },
+    })
     const account = mount(AccountTable, { props: { rows: [activeOpenAiAccount] } })
     const combinedText = `${subscription.text()} ${account.text()}`
 
-    expect(combinedText).not.toMatch(/编辑|删除|重置|撤销/)
+    expect(combinedText).not.toMatch(/编辑|删除|重置|撤销|分配/)
   })
 })

@@ -58,7 +58,7 @@ defineProps<{ rows: UserSubscription[] }>()
 const subscriptionStatus = {
   active: { label: '生效中', tone: 'success' },
   expired: { label: '已过期', tone: 'muted' },
-  revoked: { label: '已撤销', tone: 'danger' },
+  revoked: { label: '已失效', tone: 'danger' },
 } as const
 
 const hasLimit = (limit: number | null | undefined) => typeof limit === 'number' && Number.isFinite(limit) && limit > 0
