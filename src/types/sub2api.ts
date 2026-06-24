@@ -1,6 +1,14 @@
 export type AccountPlatform = 'anthropic' | 'openai' | 'gemini' | 'antigravity'
 
-export type AccountType = 'api_key' | 'oauth'
+export type AccountType =
+  | 'oauth'
+  | 'api_key'
+  | 'apikey'
+  | 'setup-token'
+  | 'upstream'
+  | 'bedrock'
+  | 'service_account'
+  | (string & {})
 
 export interface WindowStats {
   start_time: string

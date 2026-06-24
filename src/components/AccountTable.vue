@@ -21,7 +21,7 @@
 
       <div class="chip-stack">
         <span class="chip chip--green">{{ platformLabels[row.platform] }}</span>
-        <span class="chip">{{ typeLabels[row.type] }}</span>
+        <span class="chip">{{ accountTypeLabel(row.type) }}</span>
       </div>
 
       <span>{{ capacityLabel(row) }}</span>
@@ -49,10 +49,17 @@ const platformLabels: Record<AccountPlatform, string> = {
   antigravity: 'Antigravity',
 }
 
-const typeLabels: Record<AccountType, string> = {
+const typeLabels: Record<string, string> = {
   api_key: 'API Key',
+  apikey: 'API Key',
   oauth: 'OAuth',
+  'setup-token': 'Setup Token',
+  upstream: 'Upstream',
+  bedrock: 'Bedrock',
+  service_account: 'Service Account',
 }
+
+const accountTypeLabel = (type: AccountType) => typeLabels[type] ?? type
 
 const accountStatusLabels: Record<ReturnType<typeof resolveAccountStatus>['key'], string> = {
   overloaded: '过载中',

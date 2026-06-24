@@ -151,6 +151,14 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('正常')
   })
 
+  it('renders upstream account type aliases instead of blank chips', () => {
+    const wrapper = mount(AccountTable, {
+      props: { rows: [{ ...activeOpenAiAccount, type: 'setup-token' }] },
+    })
+
+    expect(wrapper.text()).toContain('Setup Token')
+  })
+
   it('renders inactive account status', () => {
     const wrapper = mount(AccountTable, { props: { rows: [inactiveOpenAiAccount] } })
 
