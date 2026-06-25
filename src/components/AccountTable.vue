@@ -28,7 +28,7 @@
       <StatusBadge :label="accountStatusLabel(row)" :tone="resolveAccountStatus(row).tone" />
       <ReadonlySwitch :model-value="row.schedulable" />
       <span>{{ formatDateOnly(row.expires_at) }}</span>
-      <span class="readonly-action">详情</span>
+      <button class="link-button" type="button" @click="$emit('select-usage', row)">详情</button>
     </div>
   </section>
 </template>
@@ -41,6 +41,7 @@ import { resolveAccountStatus } from '@/utils/accountStatus'
 import { formatDateOnly } from '@/utils/format'
 
 defineProps<{ rows: Account[] }>()
+defineEmits<{ 'select-usage': [account: Account] }>()
 
 const platformLabels: Record<AccountPlatform, string> = {
   anthropic: 'Anthropic',

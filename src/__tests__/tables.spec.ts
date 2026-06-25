@@ -166,14 +166,15 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('停用')
   })
 
-  it('does not render inert detail buttons in table components', () => {
+  it('renders account usage as the only account table action', () => {
     const subscription = mount(SubscriptionTable, {
       props: { rows: [activeSubscription] },
     })
     const account = mount(AccountTable, { props: { rows: [activeOpenAiAccount] } })
 
     expect(subscription.findAll('button')).toHaveLength(0)
-    expect(account.findAll('button')).toHaveLength(0)
+    expect(account.findAll('button')).toHaveLength(1)
+    expect(account.get('button').text()).toBe('详情')
   })
 
   it('does not render mutating action labels', () => {

@@ -449,6 +449,146 @@ body {
   text-decoration: underline;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  padding: 24px;
+  background: rgb(15 23 42 / 0.45);
+}
+
+.usage-dialog {
+  width: min(880px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgb(15 23 42 / 0.22);
+}
+
+.usage-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 18px 20px;
+}
+
+.usage-dialog__head h2,
+.usage-dialog__head p {
+  margin: 0;
+}
+
+.usage-dialog__head h2 {
+  margin-top: 4px;
+  color: #111827;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.usage-dialog__head p:not(.eyebrow) {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.icon-button {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #4b5563;
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.icon-button:hover {
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.dialog-state {
+  padding: 28px 20px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.usage-window-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 20px;
+}
+
+.usage-window {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  background: #f9fafb;
+}
+
+.usage-window header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.usage-window h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+}
+
+.usage-window header span {
+  color: #2563eb;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.usage-metrics {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.usage-metrics div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.usage-metrics dt {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.usage-metrics dd {
+  margin: 0;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+
 @media (max-width: 860px) {
   .data-head {
     display: none;
@@ -463,6 +603,10 @@ body {
     align-items: start;
     gap: 10px;
     padding: 14px;
+  }
+
+  .usage-window-grid {
+    grid-template-columns: 1fr;
   }
 }
 

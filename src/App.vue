@@ -22,7 +22,7 @@
         <div>
           <p class="eyebrow">运维浏览</p>
           <h1>sub2api Dashboard</h1>
-          <p>查看订阅用量、账户状态和总账户容量。</p>
+          <p>查看订阅用量、账号状态和总账号容量。</p>
         </div>
 
         <button class="refresh-button" type="button" :disabled="loading" @click="refreshAll">
@@ -37,24 +37,42 @@
       <section class="section-stack" aria-label="Dashboard data">
         <SummaryStrip :items="summaryItems" />
         <SubscriptionTable :rows="subscriptions" />
-        <AccountTable :rows="accounts" />
+        <AccountTable :rows="accounts" @select-usage="openAccountUsage" />
       </section>
     </main>
+
+    <AccountUsageDialog
+      :account="selectedAccount"
+      :usage="accountUsage"
+      :loading="accountUsageLoading"
+      :error="accountUsageError"
+      @close="closeAccountUsage"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import AccountTable from '@/components/AccountTable.vue'
+import AccountUsageDialog from '@/components/AccountUsageDialog.vue'
 import SubscriptionTable from '@/components/SubscriptionTable.vue'
 import SummaryStrip from '@/components/SummaryStrip.vue'
+import { useAccountUsage } from '@/composables/useAccountUsage'
 import { useDashboardData } from '@/composables/useDashboardData'
 
 const { loading, error, subscriptions, accounts, summary, refreshAll } = useDashboardData()
+const {
+  selectedAccount,
+  usage: accountUsage,
+  loading: accountUsageLoading,
+  error: accountUsageError,
+  open: openAccountUsage,
+  close: closeAccountUsage,
+} = useAccountUsage()
 
 const summaryItems = computed(() => [
   { label: '生效订阅', value: summary.value.subscriptions },
-  { label: '总账户', value: summary.value.accounts },
+  { label: '总账号', value: summary.value.accounts },
 ])
 
 onMounted(() => {
