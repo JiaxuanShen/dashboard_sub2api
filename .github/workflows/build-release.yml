@@ -1,0 +1,62 @@
+name: Build deploy package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Assemble deploy package
+        run: |
+          mkdir -p release/dashboard_sub2api
+          cp -r dist release/dashboard_sub2api/dist
+          cp server.mjs package.json .env.example release/dashboard_sub2api/
+          cp deploy/dashboard-sub2api.service release/dashboard_sub2api/dashboard-sub2api.service
+          cd release
+          zip -r dashboard_sub2api-${{ github.ref_name }}.zip dashboard_sub2api
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard_sub2api-${{ github.ref_name }}
+          path: release/dashboard_sub2api-${{ github.ref_name }}.zip
+          if-no-files-found: error
+
+      - name: Upload GitHub release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            "release/dashboard_sub2api-${{ github.ref_name }}.zip" \
+            --title "dashboard_sub2api ${{ github.ref_name }}" \
+            --notes "Built from ${{ github.sha }}"

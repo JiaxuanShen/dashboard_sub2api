@@ -17,6 +17,61 @@
 /dashboard-api/* -> http://127.0.0.1:8080/api/v1/admin/*
 ```
 
+## GitHub Actions 自动编译
+
+仓库不提交 `dist/`。编译产物由 GitHub Actions 生成 zip 包，服务器下载 zip 后解压部署。
+
+工作流文件：
+
+```text
+.github/workflows/build-release.yml
+```
+
+它会执行：
+
+```bash
+npm ci
+npm run test:run
+npm run typecheck
+npm run build
+```
+
+然后打包：
+
+```text
+dashboard_sub2api-<ref>.zip
+└── dashboard_sub2api/
+    ├── dist/
+    ├── server.mjs
+    ├── package.json
+    ├── .env.example
+    └── dashboard-sub2api.service
+```
+
+### 手动生成构建包
+
+在 GitHub 仓库页面：
+
+1. 打开 `Actions`
+2. 选择 `Build deploy package`
+3. 点击 `Run workflow`
+4. 等运行完成后，在该 workflow run 的 `Artifacts` 下载 zip
+
+### 打 tag 生成 Release
+
+本地执行：
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions 会自动创建 Release，并上传：
+
+```text
+dashboard_sub2api-v0.1.0.zip
+```
+
 ## 环境变量
 
 复制 `.env.example` 到服务器上的安全位置，例如 `/etc/dashboard_sub2api.env`：
@@ -38,62 +93,24 @@ chown root:root /etc/dashboard_sub2api.env
 
 `SUB2API_ADMIN_API_KEY` 是 `sub2api` 后台的 Admin API Key。上游后台鉴权使用 `x-api-key`，不要把这个值写进前端 `.env.production`、源码、构建产物或公开的反向代理配置。
 
-## 部署方式 A：服务器构建
+## 使用构建包部署
 
-适合服务器有 Node/npm，并且希望部署流程最直接的场景。
-
-```bash
-git clone <your-dashboard-repo> /tmp/dashboard_sub2api
-cd /tmp/dashboard_sub2api
-git pull --ff-only
-
-npm ci
-npm run test:run
-npm run typecheck
-npm run build
-```
-
-准备正式运行目录：
+把 GitHub Actions 生成的 zip 上传到服务器后：
 
 ```bash
 mkdir -p /opt/dashboard_sub2api
-cp server.mjs package.json /opt/dashboard_sub2api/
-cp -r dist /opt/dashboard_sub2api/
+unzip dashboard_sub2api-v0.1.0.zip -d /tmp/dashboard_release
+rsync -a --delete /tmp/dashboard_release/dashboard_sub2api/ /opt/dashboard_sub2api/
+systemctl restart dashboard-sub2api.service
 ```
 
-## 部署方式 B：本地构建后上传
-
-可以。本地构建是可行的，而且能减少服务器上的 Node/npm 依赖和构建时间。前提是你上传的是已经构建好的 `dist/`，并且服务器仍然需要一个 Node 运行时来执行 `server.mjs`。
-
-本地执行：
-
-```bash
-npm ci
-npm run test:run
-npm run typecheck
-npm run build
-```
-
-上传到服务器的最小文件集：
-
-```text
-server.mjs
-package.json
-dist/
-```
-
-放到服务器运行目录：
-
-```bash
-mkdir -p /opt/dashboard_sub2api
-# 将 server.mjs、package.json、dist/ 放入 /opt/dashboard_sub2api
-```
-
-注意：当前前端构建使用 `base: '/'`，因此适合部署在独立域名或根路径，例如 `https://dashboard.example.com/`。如果要挂在 `/dashboard/` 子路径，需要同步调整 Vite base 和静态服务路径。
+如果是第一次部署，先准备环境文件和 systemd 服务。
 
 ## systemd 服务
 
-示例服务文件在 `deploy/dashboard-sub2api.service`。如果服务器上的 Node 不在 `/usr/bin/node`，需要把 `ExecStart` 改成实际路径：
+示例服务文件在 `deploy/dashboard-sub2api.service`，构建包里也会包含一份 `dashboard-sub2api.service`。
+
+如果服务器上的 Node 不在 `/usr/bin/node`，需要把 `ExecStart` 改成实际路径：
 
 ```ini
 ExecStart=/path/to/node /opt/dashboard_sub2api/server.mjs
@@ -102,7 +119,7 @@ ExecStart=/path/to/node /opt/dashboard_sub2api/server.mjs
 启用服务：
 
 ```bash
-cp deploy/dashboard-sub2api.service /etc/systemd/system/dashboard-sub2api.service
+cp /opt/dashboard_sub2api/dashboard-sub2api.service /etc/systemd/system/dashboard-sub2api.service
 systemctl daemon-reload
 systemctl enable --now dashboard-sub2api.service
 systemctl status dashboard-sub2api.service
@@ -141,14 +158,14 @@ npm install
 npm run dev
 ```
 
-开发服务器只负责前端热更新。连接真实 `sub2api` 时，建议单独运行构建版：
+连接真实 `sub2api` 时，建议单独运行构建版：
 
 ```bash
 npm run build
 npm run serve
 ```
 
-## 验证
+## 本地验证
 
 ```bash
 npm run test:run
@@ -172,6 +189,7 @@ API：/dashboard-api/accounts/{id}/usage
 
 - 订阅管理列表和用量窗口
 - 账号管理列表、调度状态、容量和账号状态
+- 账号用量详情窗口
 - 顶部汇总、刷新、错误提示
 
 暂不包含编辑、删除、撤销订阅、重置配额、切换调度、分配订阅等写操作。
