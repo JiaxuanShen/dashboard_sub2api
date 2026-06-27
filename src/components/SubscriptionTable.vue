@@ -6,7 +6,6 @@
       <span>用量</span>
       <span>到期</span>
       <span>状态</span>
-      <span>操作</span>
     </div>
 
     <div v-for="row in rows" :key="row.id" class="data-row subscription-grid">
@@ -47,7 +46,6 @@
 
       <span>{{ formatDateOnly(row.expires_at) }}</span>
       <StatusBadge :label="subscriptionStatus[row.status].label" :tone="subscriptionStatus[row.status].tone" />
-      <span class="readonly-action">详情</span>
     </div>
   </section>
 </template>

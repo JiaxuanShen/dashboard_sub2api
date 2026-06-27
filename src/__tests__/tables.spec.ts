@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import AccountTable from '@/components/AccountTable.vue'
 import SubscriptionTable from '@/components/SubscriptionTable.vue'
-import type { Account, UserSubscription } from '@/types/sub2api'
+import type { Account, AccountUsageInfo, UserSubscription } from '@/types/sub2api'
 
 const activeSubscription: UserSubscription = {
   id: 1,
@@ -113,6 +113,24 @@ const inactiveOpenAiAccount: Account = {
   status: 'inactive',
 }
 
+const accountUsage: AccountUsageInfo = {
+  source: 'active',
+  updated_at: '2026-06-24T12:00:00Z',
+  five_hour: {
+    utilization: 0.42,
+    resets_at: '2026-06-24T15:00:00Z',
+    remaining_seconds: 7200,
+    window_stats: null,
+  },
+  seven_day: {
+    utilization: 91,
+    resets_at: null,
+    remaining_seconds: 0,
+    window_stats: null,
+  },
+  seven_day_sonnet: null,
+}
+
 describe('read-only dashboard tables', () => {
   it('renders an active subscription row', () => {
     const wrapper = mount(SubscriptionTable, { props: { rows: [activeSubscription] } })
@@ -143,12 +161,19 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('无限制')
   })
 
-  it('renders an active OpenAI OAuth account row', () => {
-    const wrapper = mount(AccountTable, { props: { rows: [activeOpenAiAccount] } })
+  it('renders an active OpenAI OAuth account row with inline usage', () => {
+    const wrapper = mount(AccountTable, {
+      props: { rows: [activeOpenAiAccount], usageByAccountId: { 1: accountUsage }, usageLoading: false },
+    })
 
     expect(wrapper.text()).toContain('openai-main')
     expect(wrapper.text()).toContain('OpenAI')
     expect(wrapper.text()).toContain('正常')
+    expect(wrapper.text()).toContain('5h')
+    expect(wrapper.text()).toContain('42%')
+    expect(wrapper.text()).toContain('7d')
+    expect(wrapper.text()).toContain('91%')
+    expect(wrapper.findAll('button')).toHaveLength(0)
   })
 
   it('renders upstream account type aliases instead of blank chips', () => {
@@ -166,15 +191,16 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('停用')
   })
 
-  it('renders account usage as the only account table action', () => {
+  it('does not render fake detail actions', () => {
     const subscription = mount(SubscriptionTable, {
       props: { rows: [activeSubscription] },
     })
     const account = mount(AccountTable, { props: { rows: [activeOpenAiAccount] } })
 
+    expect(subscription.text()).not.toContain('详情')
+    expect(account.text()).not.toContain('详情')
     expect(subscription.findAll('button')).toHaveLength(0)
-    expect(account.findAll('button')).toHaveLength(1)
-    expect(account.get('button').text()).toBe('详情')
+    expect(account.findAll('button')).toHaveLength(0)
   })
 
   it('does not render mutating action labels', () => {

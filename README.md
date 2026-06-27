@@ -4,7 +4,7 @@
 
 ## 工作方式
 
-本项目自带一个轻量 Node 服务，直接监听一个本机端口并完成两件事：
+项目自带一个轻量 Node 服务，部署后直接监听一个本机端口，并完成两件事：
 
 - 提供 `dist/` 里的前端页面和静态资源。
 - 把 `/dashboard-api/*` 代理到 `sub2api` 的 `/api/v1/admin/*`，并在服务端注入 `x-api-key`。
@@ -57,7 +57,7 @@ dashboard_sub2api-<ref>.zip
 3. 点击 `Run workflow`
 4. 等运行完成后，在该 workflow run 的 `Artifacts` 下载 zip
 
-### 打 tag 生成 Release
+### 按 tag 生成 Release
 
 本地执行：
 
@@ -91,7 +91,7 @@ chmod 600 /etc/dashboard_sub2api.env
 chown root:root /etc/dashboard_sub2api.env
 ```
 
-`SUB2API_ADMIN_API_KEY` 是 `sub2api` 后台的 Admin API Key。上游后台鉴权使用 `x-api-key`，不要把这个值写进前端 `.env.production`、源码、构建产物或公开的反向代理配置。
+`SUB2API_ADMIN_API_KEY` 是 `sub2api` 后台的 Admin API Key。Dashboard 后端会用它请求 `x-api-key`，不要把这个值写进前端 `.env.production`、源码、构建产物或公开的反向代理配置。
 
 ## 使用构建包部署
 
@@ -143,13 +143,12 @@ https://dashboard.example.com -> http://127.0.0.1:4180
 API 请求链路：
 
 ```text
-浏览器
-  -> https://dashboard.example.com/dashboard-api/accounts
+浏览器 -> https://dashboard.example.com/dashboard-api/accounts
   -> 127.0.0.1:4180/dashboard-api/accounts
   -> http://127.0.0.1:8080/api/v1/admin/accounts
 ```
 
-admin key 只存在 `/etc/dashboard_sub2api.env`，不需要写进反向代理配置。
+admin key 只存放在 `/etc/dashboard_sub2api.env`，不需要写进反向代理配置。
 
 ## 本地开发
 
@@ -185,11 +184,11 @@ API：/dashboard-api/accounts/{id}/usage
 
 ## 当前范围
 
-第一版是只读窗口，包含：
+第一版是只读 Dashboard，包含：
 
-- 订阅管理列表和用量窗口
-- 账号管理列表、调度状态、容量和账号状态
-- 账号用量详情窗口
+- 订阅列表和订阅用量展示
+- 账号列表、调度状态、容量和账号状态
+- 账号 5h、7d 用量直接在账号列表内展示
 - 顶部汇总、刷新、错误提示
 
 暂不包含编辑、删除、撤销订阅、重置配额、切换调度、分配订阅等写操作。

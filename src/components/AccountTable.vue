@@ -7,7 +7,7 @@
       <span>状态</span>
       <span>调度</span>
       <span>到期</span>
-      <span>操作</span>
+      <span>用量</span>
     </div>
 
     <div v-for="row in rows" :key="row.id" class="data-row account-grid">
@@ -28,7 +28,13 @@
       <StatusBadge :label="accountStatusLabel(row)" :tone="resolveAccountStatus(row).tone" />
       <ReadonlySwitch :model-value="row.schedulable" />
       <span>{{ formatDateOnly(row.expires_at) }}</span>
-      <button class="link-button" type="button" @click="$emit('select-usage', row)">详情</button>
+      <div class="usage-stack">
+        <template v-if="usageByAccountId?.[row.id]">
+          <UsageBar label="5h" :percent="usagePercent(usageByAccountId[row.id]?.five_hour)" :amount="usageAmount(usageByAccountId[row.id]?.five_hour)" />
+          <UsageBar label="7d" :percent="usagePercent(usageByAccountId[row.id]?.seven_day)" :amount="usageAmount(usageByAccountId[row.id]?.seven_day)" />
+        </template>
+        <span v-else class="muted-text">{{ usageLoading ? '加载中' : '暂无数据' }}</span>
+      </div>
     </div>
   </section>
 </template>
@@ -36,12 +42,16 @@
 <script setup lang="ts">
 import ReadonlySwitch from '@/components/ReadonlySwitch.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import type { Account, AccountPlatform, AccountType } from '@/types/sub2api'
+import UsageBar from '@/components/UsageBar.vue'
+import type { Account, AccountPlatform, AccountType, AccountUsageInfo, UsageProgress } from '@/types/sub2api'
 import { resolveAccountStatus } from '@/utils/accountStatus'
 import { formatDateOnly } from '@/utils/format'
 
-defineProps<{ rows: Account[] }>()
-defineEmits<{ 'select-usage': [account: Account] }>()
+defineProps<{
+  rows: Account[]
+  usageByAccountId?: Record<number, AccountUsageInfo | null>
+  usageLoading?: boolean
+}>()
 
 const platformLabels: Record<AccountPlatform, string> = {
   anthropic: 'Anthropic',
@@ -78,4 +88,13 @@ const capacityLabel = (account: Account) => {
   const current = account.current_concurrency ?? 0
   return `${current}/${account.concurrency} 并发`
 }
+
+const usagePercent = (item: UsageProgress | null | undefined) => {
+  const raw = item?.utilization
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return 0
+  const normalized = raw <= 1 ? raw * 100 : raw
+  return Math.max(0, Math.min(100, Math.round(normalized)))
+}
+
+const usageAmount = (item: UsageProgress | null | undefined) => `${usagePercent(item)}%`
 </script>

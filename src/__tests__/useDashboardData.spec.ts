@@ -32,7 +32,13 @@ describe('useDashboardData', () => {
   it('loads active subscriptions and accounts into state', async () => {
     const api = {
       listSubscriptions: vi.fn().mockResolvedValue(page([subscription], 3)),
-      listAccounts: vi.fn().mockResolvedValue(page([account], 2))
+      listAccounts: vi.fn().mockResolvedValue(page([account], 2)),
+      getAccountUsage: vi.fn().mockResolvedValue({
+        updated_at: null,
+        five_hour: null,
+        seven_day: null,
+        seven_day_sonnet: null
+      })
     }
     const state = useDashboardData(api)
 
@@ -40,8 +46,15 @@ describe('useDashboardData', () => {
 
     expect(api.listSubscriptions).toHaveBeenCalledWith({ page: 1, pageSize: 50, status: 'active' })
     expect(api.listAccounts).toHaveBeenCalledWith({ page: 1, pageSize: 50 })
+    expect(api.getAccountUsage).toHaveBeenCalledWith(1)
     expect(state.subscriptions.value).toEqual([subscription])
     expect(state.accounts.value).toEqual([account])
+    expect(state.accountUsages.value[1]).toEqual({
+      updated_at: null,
+      five_hour: null,
+      seven_day: null,
+      seven_day_sonnet: null
+    })
     expect(state.summary.value).toEqual({ subscriptions: 3, accounts: 2 })
     expect(state.error.value).toBeNull()
     expect(state.loading.value).toBe(false)
@@ -50,7 +63,8 @@ describe('useDashboardData', () => {
   it('sets error and clears loading when refresh fails', async () => {
     const api = {
       listSubscriptions: vi.fn().mockRejectedValue(new Error('network down')),
-      listAccounts: vi.fn().mockResolvedValue(page([]))
+      listAccounts: vi.fn().mockResolvedValue(page([])),
+      getAccountUsage: vi.fn()
     }
     const state = useDashboardData(api)
 
@@ -84,7 +98,13 @@ describe('useDashboardData', () => {
         .fn()
         .mockReturnValueOnce(oldSubscriptionRequest)
         .mockResolvedValueOnce(page([latestSubscription], 7)),
-      listAccounts: vi.fn().mockReturnValueOnce(oldAccountRequest).mockResolvedValueOnce(page([latestAccount], 5))
+      listAccounts: vi.fn().mockReturnValueOnce(oldAccountRequest).mockResolvedValueOnce(page([latestAccount], 5)),
+      getAccountUsage: vi.fn().mockResolvedValue({
+        updated_at: null,
+        five_hour: null,
+        seven_day: null,
+        seven_day_sonnet: null
+      })
     }
     const state = useDashboardData(api)
 
