@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCurrency, formatTokens, formatDateOnly } from '@/utils/format'
+import { formatCurrency, formatTokens, formatDateOnly, formatDurationUntil, formatDaysUntil, formatCompactCount } from '@/utils/format'
 import { progressPercent } from '@/utils/usage'
 
 describe('format helpers', () => {
@@ -19,6 +19,23 @@ describe('format helpers', () => {
   it('returns dash for missing or invalid dates', () => {
     expect(formatDateOnly(null)).toBe('-')
     expect(formatDateOnly('not-a-date')).toBe('-')
+  })
+
+  it('formats reset countdowns for usage windows', () => {
+    const now = new Date('2026-07-01T00:00:00Z').getTime()
+
+    expect(formatDurationUntil('2026-07-03T06:00:00Z', now)).toBe('2 天 6 小时后重置')
+    expect(formatDurationUntil('2026-07-01T00:20:00Z', now)).toBe('20 分钟后重置')
+    expect(formatDurationUntil('2026-06-30T23:59:00Z', now)).toBe('已重置')
+  })
+
+  it('formats expiry days and compact counts', () => {
+    const now = new Date('2026-07-01T00:00:00Z').getTime()
+
+    expect(formatDaysUntil('2026-07-30T00:00:00Z', now)).toBe('29 天剩余')
+    expect(formatDaysUntil(null, now)).toBe('-')
+    expect(formatCompactCount(12450)).toBe('12.5K')
+    expect(formatCompactCount(9876543)).toBe('9.9M')
   })
 
   it('falls back for non-finite number formatting inputs', () => {

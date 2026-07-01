@@ -3,8 +3,8 @@
     <div class="data-head subscription-grid">
       <span>用户</span>
       <span>套餐</span>
-      <span>用量</span>
-      <span>到期</span>
+      <span>用量窗口</span>
+      <span>到期时间</span>
       <span>状态</span>
     </div>
 
@@ -29,22 +29,34 @@
           :percent="progressPercent(row.daily_usage_usd, row.group?.daily_limit_usd).width"
           :amount="usageAmount(row.daily_usage_usd, row.group?.daily_limit_usd)"
         />
+        <small v-if="hasLimit(row.group?.daily_limit_usd)" class="reset-text">
+          {{ resetText(row.daily_window_start, 'daily') }}
+        </small>
         <UsageBar
           v-if="hasLimit(row.group?.weekly_limit_usd)"
-          label="周"
+          label="每周"
           :percent="progressPercent(row.weekly_usage_usd, row.group?.weekly_limit_usd).width"
           :amount="usageAmount(row.weekly_usage_usd, row.group?.weekly_limit_usd)"
         />
+        <small v-if="hasLimit(row.group?.weekly_limit_usd)" class="reset-text">
+          {{ resetText(row.weekly_window_start, 'weekly') }}
+        </small>
         <UsageBar
           v-if="hasLimit(row.group?.monthly_limit_usd)"
-          label="月"
+          label="每月"
           :percent="progressPercent(row.monthly_usage_usd, row.group?.monthly_limit_usd).width"
           :amount="usageAmount(row.monthly_usage_usd, row.group?.monthly_limit_usd)"
         />
+        <small v-if="hasLimit(row.group?.monthly_limit_usd)" class="reset-text">
+          {{ resetText(row.monthly_window_start, 'monthly') }}
+        </small>
         <span v-if="!hasUsageLimit(row)" class="muted-text">无限制</span>
       </div>
 
-      <span>{{ formatDateOnly(row.expires_at) }}</span>
+      <span class="date-stack">
+        <strong>{{ formatDateOnly(row.expires_at) }}</strong>
+        <small>{{ formatDaysUntil(row.expires_at, now) }}</small>
+      </span>
       <StatusBadge :label="subscriptionStatus[row.status].label" :tone="subscriptionStatus[row.status].tone" />
     </div>
   </section>
@@ -54,10 +66,10 @@
 import StatusBadge from '@/components/StatusBadge.vue'
 import UsageBar from '@/components/UsageBar.vue'
 import type { UserSubscription } from '@/types/sub2api'
-import { formatCurrency, formatDateOnly } from '@/utils/format'
+import { formatCurrency, formatDateOnly, formatDaysUntil, formatDurationUntil } from '@/utils/format'
 import { progressPercent } from '@/utils/usage'
 
-defineProps<{ rows: UserSubscription[] }>()
+const props = defineProps<{ rows: UserSubscription[]; now?: number }>()
 
 const subscriptionStatus = {
   active: { label: '生效中', tone: 'success' },
@@ -74,6 +86,19 @@ const hasUsageLimit = (row: UserSubscription) =>
 
 const usageAmount = (used: number | null | undefined, limit: number | null | undefined) =>
   `${formatCurrency(used)} / ${formatCurrency(limit)}`
+
+const windowMs = {
+  daily: 86_400_000,
+  weekly: 7 * 86_400_000,
+  monthly: 30 * 86_400_000,
+} as const
+
+const resetText = (start: string | null | undefined, window: keyof typeof windowMs) => {
+  if (!start) return '-'
+  const startMs = new Date(start).getTime()
+  if (!Number.isFinite(startMs)) return '-'
+  return formatDurationUntil(new Date(startMs + windowMs[window]).toISOString(), props.now)
+}
 
 const userLabel = (row: UserSubscription) => row.user?.email || row.user?.username || `User ${row.user_id}`
 

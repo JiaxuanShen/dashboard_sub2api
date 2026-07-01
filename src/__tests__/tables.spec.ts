@@ -12,6 +12,8 @@ const activeSubscription: UserSubscription = {
   expires_at: '2026-07-24T00:00:00Z',
   weekly_usage_usd: 18,
   monthly_usage_usd: 62,
+  weekly_window_start: '2026-06-29T00:00:00Z',
+  monthly_window_start: '2026-07-01T00:00:00Z',
   user: {
     id: 10,
     email: 'shevbing@hotmail.com',
@@ -87,6 +89,18 @@ const activeOpenAiAccount: Account = {
   proxy_id: null,
   concurrency: 8,
   current_concurrency: 2,
+  current_window_cost: 12.5,
+  window_cost_limit: 50,
+  active_sessions: 3,
+  max_sessions: 10,
+  current_rpm: 12,
+  base_rpm: 60,
+  quota_daily_used: 120,
+  quota_daily_limit: 500,
+  quota_weekly_used: 700,
+  quota_weekly_limit: 2000,
+  quota_used: 1500,
+  quota_limit: 10000,
   priority: 10,
   status: 'active',
   error_message: null,
@@ -131,6 +145,25 @@ const accountUsage: AccountUsageInfo = {
   seven_day_sonnet: null,
 }
 
+const accountUsageWithStats: AccountUsageInfo = {
+  ...accountUsage,
+  five_hour: {
+    utilization: 0.42,
+    resets_at: '2026-07-01T05:00:00Z',
+    remaining_seconds: 18000,
+    window_stats: {
+      start_time: '2026-07-01T00:00:00Z',
+      end_time: '2026-07-01T05:00:00Z',
+      requests: 12450,
+      input_tokens: 1000000,
+      output_tokens: 250000,
+      tokens: 1250000,
+      cost: 8.75,
+      user_cost: 9.5,
+    },
+  },
+}
+
 describe('read-only dashboard tables', () => {
   it('renders an active subscription row', () => {
     const wrapper = mount(SubscriptionTable, { props: { rows: [activeSubscription] } })
@@ -161,6 +194,16 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('无限制')
   })
 
+  it('renders subscription reset countdowns and expiry remaining days', () => {
+    const wrapper = mount(SubscriptionTable, { props: { rows: [activeSubscription], now: new Date('2026-07-01T00:00:00Z').getTime() } })
+
+    expect(wrapper.text()).toContain('每周')
+    expect(wrapper.text()).toContain('$18.00 / $100.00')
+    expect(wrapper.text()).toContain('5 天 0 小时后重置')
+    expect(wrapper.text()).toContain('2026/07/24')
+    expect(wrapper.text()).toContain('23 天剩余')
+  })
+
   it('renders an active OpenAI OAuth account row with inline usage', () => {
     const wrapper = mount(AccountTable, {
       props: { rows: [activeOpenAiAccount], usageByAccountId: { 1: accountUsage }, usageLoading: false },
@@ -174,6 +217,21 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('7d')
     expect(wrapper.text()).toContain('91%')
     expect(wrapper.findAll('button')).toHaveLength(0)
+  })
+
+  it('renders rich account capacity, quotas, and usage stats', () => {
+    const wrapper = mount(AccountTable, {
+      props: { rows: [activeOpenAiAccount], usageByAccountId: { 1: accountUsageWithStats }, usageLoading: false },
+    })
+
+    expect(wrapper.text()).toContain('窗口 $12.50 / $50.00')
+    expect(wrapper.text()).toContain('会话 3 / 10')
+    expect(wrapper.text()).toContain('RPM 12 / 60')
+    expect(wrapper.text()).toContain('每日')
+    expect(wrapper.text()).toContain('120 / 500')
+    expect(wrapper.text()).toContain('请求 12.5K')
+    expect(wrapper.text()).toContain('Token 1.3M')
+    expect(wrapper.text()).toContain('成本 $8.75')
   })
 
   it('renders upstream account type aliases instead of blank chips', () => {
@@ -210,6 +268,6 @@ describe('read-only dashboard tables', () => {
     const account = mount(AccountTable, { props: { rows: [activeOpenAiAccount] } })
     const combinedText = `${subscription.text()} ${account.text()}`
 
-    expect(combinedText).not.toMatch(/编辑|删除|重置|撤销|分配/)
+    expect(combinedText).not.toMatch(/编辑|删除|重置配额|撤销|分配|操作/)
   })
 })

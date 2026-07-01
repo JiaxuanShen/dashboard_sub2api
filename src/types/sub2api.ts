@@ -10,6 +10,11 @@ export type AccountType =
   | 'service_account'
   | (string & {})
 
+export interface AccountGroup {
+  id: number
+  name: string
+}
+
 export interface WindowStats {
   start_time: string
   end_time: string
@@ -77,8 +82,16 @@ export interface Account {
   quota_used?: number | null
   quota_daily_limit?: number | null
   quota_daily_used?: number | null
+  quota_daily_start?: string | null
   quota_weekly_limit?: number | null
   quota_weekly_used?: number | null
+  quota_weekly_start?: string | null
+  parent_chatgpt_account_id?: string | null
+  parent_plan_type?: string | null
+  parent_privacy_mode?: string | null
+  parent_subscription_expires_at?: string | null
+  groups?: AccountGroup[]
+  group_ids?: number[]
 }
 
 export interface SubscriptionGroup {

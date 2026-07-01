@@ -70,7 +70,7 @@ body {
 }
 
 .workspace {
-  width: min(1180px, 100%);
+  width: min(1480px, 100%);
   min-width: 0;
   margin: 0 auto;
   padding: 28px;
@@ -324,11 +324,11 @@ body {
 }
 
 .subscription-grid {
-  grid-template-columns: minmax(180px, 1.3fr) minmax(120px, 0.8fr) minmax(260px, 1.5fr) minmax(92px, 0.6fr) minmax(78px, 0.5fr);
+  grid-template-columns: minmax(200px, 1.1fr) minmax(130px, 0.7fr) minmax(360px, 1.7fr) minmax(120px, 0.65fr) minmax(84px, 0.45fr);
 }
 
 .account-grid {
-  grid-template-columns: minmax(170px, 1.1fr) minmax(140px, 0.8fr) minmax(82px, 0.5fr) minmax(80px, 0.5fr) minmax(52px, 0.35fr) minmax(86px, 0.5fr) minmax(190px, 1.1fr);
+  grid-template-columns: minmax(190px, 1.1fr) minmax(140px, 0.75fr) minmax(132px, 0.75fr) minmax(210px, 1.25fr) minmax(84px, 0.45fr) minmax(52px, 0.32fr) minmax(92px, 0.45fr) minmax(250px, 1.35fr);
 }
 
 .identity-cell {
@@ -400,6 +400,43 @@ body {
   display: grid;
   gap: 6px;
   min-width: 0;
+}
+
+.metric-stack,
+.date-stack {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.metric-stack span,
+.date-stack small,
+.reset-text,
+.stats-line {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.metric-stack span:first-child {
+  color: #111827;
+}
+
+.date-stack strong {
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.reset-text {
+  padding-left: 46px;
+  color: #2563eb;
+}
+
+.stats-line {
+  overflow: hidden;
+  color: #374151;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 860px) {
