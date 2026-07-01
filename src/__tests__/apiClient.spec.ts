@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApiClient } from '@/api/client'
 import { createDashboardApi } from '@/api/dashboard'
+import { createSystemApi } from '@/api/system'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -79,5 +80,20 @@ describe('dashboard api', () => {
     const api = createDashboardApi(fetchMock)
 
     await expect(api.listAccounts({ page: 1, pageSize: 20 })).rejects.toThrow('API 请求失败: INVALID_ADMIN_KEY')
+  })
+
+  it('calls dashboard system endpoints with update key', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ message: 'Update installed', need_restart: true })
+    })
+    const api = createSystemApi(fetchMock, () => 'update-secret')
+
+    await api.update()
+
+    expect(fetchMock).toHaveBeenCalledWith('/dashboard-system/update', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'x-dashboard-update-key': 'update-secret' }
+    })
   })
 })

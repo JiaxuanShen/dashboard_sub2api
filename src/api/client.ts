@@ -2,6 +2,7 @@ export type FetchLike = (input: string, init?: RequestInit) => Promise<Pick<Resp
 
 export interface RequestOptions {
   params?: Record<string, string | number | boolean | null | undefined>
+  headers?: Record<string, string | undefined>
 }
 
 export interface ApiEnvelope<T> {
@@ -24,9 +25,13 @@ const buildUrl = (path: string, params?: RequestOptions['params']) => {
 }
 
 export function createApiClient(fetcher: FetchLike = fetch) {
-  async function get<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  async function request<T>(method: 'GET' | 'POST', path: string, options: RequestOptions = {}): Promise<T> {
     const response = await fetcher(buildUrl(path, options.params), {
-      headers: { Accept: 'application/json' }
+      method: method === 'GET' ? undefined : method,
+      headers: {
+        Accept: 'application/json',
+        ...Object.fromEntries(Object.entries(options.headers ?? {}).filter(([, value]) => value !== undefined))
+      }
     })
     if (!response.ok) {
       throw new Error(`API 请求失败: ${response.status} ${response.statusText}`)
@@ -41,5 +46,12 @@ export function createApiClient(fetcher: FetchLike = fetch) {
     return payload as T
   }
 
-  return { get }
+  return {
+    get<T>(path: string, options: RequestOptions = {}) {
+      return request<T>('GET', path, options)
+    },
+    post<T>(path: string, options: RequestOptions = {}) {
+      return request<T>('POST', path, options)
+    }
+  }
 }

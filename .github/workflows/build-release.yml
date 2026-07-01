@@ -38,6 +38,7 @@ jobs:
       - name: Assemble deploy package
         run: |
           mkdir -p release/dashboard_sub2api
+          echo "${{ github.ref_name }}" > release/dashboard_sub2api/VERSION
           cp -r dist release/dashboard_sub2api/dist
           cp server.mjs package.json .env.example release/dashboard_sub2api/
           cp deploy/dashboard-sub2api.service release/dashboard_sub2api/dashboard-sub2api.service

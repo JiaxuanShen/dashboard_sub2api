@@ -2,6 +2,8 @@ import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import http from 'node:http'
 import { extname, join, normalize, resolve, sep } from 'node:path'
+import { readCurrentVersion } from './src/server/version.mjs'
+import { createDashboardUpdater } from './src/server/updater.mjs'
 
 const defaultRoot = process.cwd()
 const defaultDistDir = resolve(defaultRoot, 'dist')
@@ -89,7 +91,63 @@ async function proxyDashboardApi(req, res, options) {
   }
 }
 
+function sendJson(res, status, payload) {
+  const body = JSON.stringify(payload)
+  res.writeHead(status, {
+    'content-length': Buffer.byteLength(body),
+    'content-type': 'application/json; charset=utf-8'
+  })
+  res.end(body)
+}
+
+function isUpdateAuthorized(req, options) {
+  if (!options.updateEnabled) return false
+  if (!options.updateKey) return false
+  return req.headers['x-dashboard-update-key'] === options.updateKey
+}
+
+async function handleDashboardSystem(req, res, url, options) {
+  if (!options.updateEnabled) {
+    sendJson(res, 404, { message: 'Dashboard update is disabled' })
+    return
+  }
+
+  if (!isUpdateAuthorized(req, options)) {
+    sendJson(res, 401, { message: 'Invalid dashboard update key' })
+    return
+  }
+
+  if (req.method === 'GET' && url.pathname === '/dashboard-system/version') {
+    sendJson(res, 200, { version: await readCurrentVersion(options.rootDir) })
+    return
+  }
+
+  if (req.method === 'GET' && url.pathname === '/dashboard-system/check-updates') {
+    const force = url.searchParams.get('force') === 'true'
+    sendJson(res, 200, await options.updater.checkUpdates({ force }))
+    return
+  }
+
+  if (req.method === 'POST' && url.pathname === '/dashboard-system/update') {
+    sendJson(res, 200, await options.updater.update())
+    return
+  }
+
+  if (req.method === 'POST' && url.pathname === '/dashboard-system/restart') {
+    sendJson(res, 200, await options.updater.restart())
+    return
+  }
+
+  if (req.method === 'POST' && url.pathname === '/dashboard-system/rollback') {
+    sendJson(res, 200, await options.updater.rollback())
+    return
+  }
+
+  sendJson(res, 404, { message: 'Unknown dashboard system endpoint' })
+}
+
 export function createDashboardServer(config = {}) {
+  const rootDir = resolve(config.rootDir || process.env.DASHBOARD_ROOT_DIR || defaultRoot)
   const distDir = resolve(config.distDir || process.env.DASHBOARD_DIST_DIR || defaultDistDir)
   const indexPath = resolve(distDir, 'index.html')
   const options = {
@@ -97,11 +155,29 @@ export function createDashboardServer(config = {}) {
     distDir,
     host: config.host ?? process.env.DASHBOARD_HOST ?? '0.0.0.0',
     port: Number(config.port ?? process.env.DASHBOARD_PORT ?? 4180),
-    sub2apiBaseUrl: config.sub2apiBaseUrl ?? process.env.SUB2API_BASE_URL ?? 'http://127.0.0.1:8080'
+    rootDir,
+    sub2apiBaseUrl: config.sub2apiBaseUrl ?? process.env.SUB2API_BASE_URL ?? 'http://127.0.0.1:8080',
+    updateEnabled: config.updateEnabled ?? process.env.DASHBOARD_UPDATE_ENABLED === 'true',
+    updateKey: config.updateKey ?? process.env.DASHBOARD_UPDATE_KEY ?? '',
+    updater: config.updater ?? createDashboardUpdater({
+      currentVersion: async () => readCurrentVersion(rootDir),
+      installDir: config.installDir ?? process.env.DASHBOARD_INSTALL_DIR ?? rootDir,
+      repo: process.env.DASHBOARD_GITHUB_REPO || 'JiaxuanShen/dashboard_sub2api',
+      restartCommand: process.env.DASHBOARD_RESTART_COMMAND || 'systemctl',
+      restartArgs: process.env.DASHBOARD_RESTART_ARGS
+        ? process.env.DASHBOARD_RESTART_ARGS.split(' ').filter(Boolean)
+        : ['restart', process.env.DASHBOARD_SERVICE_NAME || 'dashboard-sub2api.service'],
+      serviceName: process.env.DASHBOARD_SERVICE_NAME || 'dashboard-sub2api.service'
+    })
   }
 
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', 'http://dashboard.local')
+    if (url.pathname === '/dashboard-system' || url.pathname.startsWith('/dashboard-system/')) {
+      await handleDashboardSystem(req, res, url, options)
+      return
+    }
+
     if (url.pathname === '/dashboard-api' || url.pathname.startsWith('/dashboard-api/')) {
       await proxyDashboardApi(req, res, options)
       return

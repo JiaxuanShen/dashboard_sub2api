@@ -76,4 +76,91 @@ describe('dashboard server', () => {
     await expect(response.json()).resolves.toEqual({ code: 0, message: 'success', data: { ok: true } })
     expect(upstream.requests).toEqual([{ url: '/api/v1/admin/accounts?page=1', apiKey: 'secret' }])
   })
+
+  it('rejects dashboard-system requests without the update key', async () => {
+    // @ts-expect-error server.mjs is the Node runtime entrypoint exercised by this integration test.
+    const { createDashboardServer } = await import('../../server.mjs')
+    tmpDir = await mkdtemp(join(tmpdir(), 'dashboard-sub2api-'))
+    await writeFile(join(tmpDir, 'index.html'), '<div id="app"></div>')
+
+    const startedDashboard = await createDashboardServer({
+      distDir: tmpDir,
+      port: 0,
+      updateKey: 'update-secret',
+      updateEnabled: true,
+      updater: {
+        checkUpdates: async () => ({ current_version: 'v0.1.1', latest_version: 'v0.1.2', has_update: true }),
+      },
+    }).start()
+    dashboard = startedDashboard
+
+    const response = await fetch(`${startedDashboard.baseUrl}/dashboard-system/check-updates`)
+
+    expect(response.status).toBe(401)
+  })
+
+  it('returns dashboard update info when update key is valid', async () => {
+    // @ts-expect-error server.mjs is the Node runtime entrypoint exercised by this integration test.
+    const { createDashboardServer } = await import('../../server.mjs')
+    tmpDir = await mkdtemp(join(tmpdir(), 'dashboard-sub2api-'))
+    await writeFile(join(tmpDir, 'index.html'), '<div id="app"></div>')
+
+    const startedDashboard = await createDashboardServer({
+      distDir: tmpDir,
+      port: 0,
+      updateKey: 'update-secret',
+      updateEnabled: true,
+      updater: {
+        checkUpdates: async () => ({ current_version: 'v0.1.1', latest_version: 'v0.1.2', has_update: true }),
+      },
+    }).start()
+    dashboard = startedDashboard
+
+    const response = await fetch(`${startedDashboard.baseUrl}/dashboard-system/check-updates`, {
+      headers: { 'x-dashboard-update-key': 'update-secret' },
+    })
+
+    await expect(response.json()).resolves.toEqual({
+      current_version: 'v0.1.1',
+      latest_version: 'v0.1.2',
+      has_update: true,
+    })
+  })
+
+  it('runs update, restart, and rollback through authenticated dashboard-system endpoints', async () => {
+    // @ts-expect-error server.mjs is the Node runtime entrypoint exercised by this integration test.
+    const { createDashboardServer } = await import('../../server.mjs')
+    tmpDir = await mkdtemp(join(tmpdir(), 'dashboard-sub2api-'))
+    await writeFile(join(tmpDir, 'index.html'), '<div id="app"></div>')
+    const calls: string[] = []
+
+    const startedDashboard = await createDashboardServer({
+      distDir: tmpDir,
+      port: 0,
+      updateKey: 'update-secret',
+      updateEnabled: true,
+      updater: {
+        update: async () => {
+          calls.push('update')
+          return { message: 'updated', need_restart: true }
+        },
+        restart: async () => {
+          calls.push('restart')
+          return { message: 'restarted' }
+        },
+        rollback: async () => {
+          calls.push('rollback')
+          return { message: 'rolled back', need_restart: true }
+        },
+      },
+    }).start()
+    dashboard = startedDashboard
+
+    const headers = { 'x-dashboard-update-key': 'update-secret' }
+    await expect((await fetch(`${startedDashboard.baseUrl}/dashboard-system/update`, { method: 'POST', headers })).json()).resolves.toMatchObject({ message: 'updated' })
+    await expect((await fetch(`${startedDashboard.baseUrl}/dashboard-system/restart`, { method: 'POST', headers })).json()).resolves.toMatchObject({ message: 'restarted' })
+    await expect((await fetch(`${startedDashboard.baseUrl}/dashboard-system/rollback`, { method: 'POST', headers })).json()).resolves.toMatchObject({ message: 'rolled back' })
+
+    expect(calls).toEqual(['update', 'restart', 'rollback'])
+  })
 })

@@ -82,6 +82,14 @@ SUB2API_ADMIN_API_KEY=replace-with-your-admin-api-key
 DASHBOARD_HOST=127.0.0.1
 DASHBOARD_PORT=4180
 DASHBOARD_DIST_DIR=/opt/dashboard_sub2api/dist
+DASHBOARD_ROOT_DIR=/opt/dashboard_sub2api
+DASHBOARD_INSTALL_DIR=/opt/dashboard_sub2api
+DASHBOARD_GITHUB_REPO=JiaxuanShen/dashboard_sub2api
+DASHBOARD_UPDATE_ENABLED=false
+DASHBOARD_UPDATE_KEY=replace-with-random-update-key
+DASHBOARD_SERVICE_NAME=dashboard-sub2api.service
+DASHBOARD_RESTART_COMMAND=systemctl
+DASHBOARD_RESTART_ARGS=restart dashboard-sub2api.service
 ```
 
 建议把环境文件权限限制为 root 可读写：
@@ -92,6 +100,8 @@ chown root:root /etc/dashboard_sub2api.env
 ```
 
 `SUB2API_ADMIN_API_KEY` 是 `sub2api` 后台的 Admin API Key。Dashboard 后端会用它请求 `x-api-key`，不要把这个值写进前端 `.env.production`、源码、构建产物或公开的反向代理配置。
+
+`DASHBOARD_UPDATE_KEY` 用于 Dashboard 自更新接口。开启自更新时把 `DASHBOARD_UPDATE_ENABLED` 改为 `true`，并使用随机长字符串作为更新密钥。
 
 ## 使用构建包部署
 
@@ -149,6 +159,36 @@ API 请求链路：
 ```
 
 admin key 只存放在 `/etc/dashboard_sub2api.env`，不需要写进反向代理配置。
+
+## 页面内自更新
+
+开启自更新后，Dashboard 顶部会显示“检测更新”区域。输入 `DASHBOARD_UPDATE_KEY` 后可以：
+
+1. 检测 GitHub Release 最新版本。
+2. 下载 `dashboard_sub2api-vX.Y.Z.zip`。
+3. 解压到临时目录并校验包结构。
+4. 备份当前 `/opt/dashboard_sub2api`。
+5. 替换应用文件。
+6. 点击重启服务。
+
+自更新需要服务器能执行 `unzip`。重启服务默认执行：
+
+```bash
+systemctl restart dashboard-sub2api.service
+```
+
+如果 dashboard 服务不是 root 用户运行，需要给运行用户配置最小 sudo 权限，或者让 systemd 服务以具备重启权限的用户运行。推荐 sudoers 只允许这一条命令：
+
+```text
+dashboard ALL=(root) NOPASSWD: /bin/systemctl restart dashboard-sub2api.service
+```
+
+然后配置：
+
+```bash
+DASHBOARD_RESTART_COMMAND=sudo
+DASHBOARD_RESTART_ARGS=/bin/systemctl restart dashboard-sub2api.service
+```
 
 ## 本地开发
 

@@ -21,6 +21,8 @@
         </button>
       </header>
 
+      <UpdatePanel />
+
       <div v-if="error" class="error-banner" role="alert">
         {{ error }}
       </div>
@@ -39,6 +41,7 @@ import { computed, onMounted } from 'vue'
 import AccountTable from '@/components/AccountTable.vue'
 import SubscriptionTable from '@/components/SubscriptionTable.vue'
 import SummaryStrip from '@/components/SummaryStrip.vue'
+import UpdatePanel from '@/components/UpdatePanel.vue'
 import { useDashboardData } from '@/composables/useDashboardData'
 
 const { loading, error, subscriptions, accounts, accountUsages, summary, refreshAll } = useDashboardData()

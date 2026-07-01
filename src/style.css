@@ -158,6 +158,43 @@ body {
   gap: 14px;
 }
 
+.update-panel {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.update-panel__row,
+.update-panel__actions,
+.update-panel__details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-panel__input {
+  min-height: 36px;
+  min-width: 220px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.update-panel__message,
+.update-panel__details {
+  margin: 0;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
