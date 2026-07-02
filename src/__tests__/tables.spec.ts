@@ -219,19 +219,30 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.findAll('button')).toHaveLength(0)
   })
 
-  it('renders rich account capacity, quotas, and usage stats', () => {
+  it('renders rich account capacity and compact usage windows without quota or spend stats', () => {
     const wrapper = mount(AccountTable, {
-      props: { rows: [activeOpenAiAccount], usageByAccountId: { 1: accountUsageWithStats }, usageLoading: false },
+      props: {
+        rows: [activeOpenAiAccount],
+        usageByAccountId: { 1: accountUsageWithStats },
+        usageLoading: false,
+        now: new Date('2026-07-01T00:00:00Z').getTime(),
+      },
     })
 
     expect(wrapper.text()).toContain('窗口 $12.50 / $50.00')
     expect(wrapper.text()).toContain('会话 3 / 10')
     expect(wrapper.text()).toContain('RPM 12 / 60')
-    expect(wrapper.text()).toContain('每日')
-    expect(wrapper.text()).toContain('120 / 500')
-    expect(wrapper.text()).toContain('请求 12.5K')
-    expect(wrapper.text()).toContain('Token 1.3M')
-    expect(wrapper.text()).toContain('成本 $8.75')
+    expect(wrapper.text()).toContain('用量窗口')
+    expect(wrapper.text()).toContain('5h')
+    expect(wrapper.text()).toContain('42%')
+    expect(wrapper.text()).toContain('5 小时 0 分钟后重置')
+    expect(wrapper.text()).not.toContain('配额')
+    expect(wrapper.text()).not.toContain('每日')
+    expect(wrapper.text()).not.toContain('120 / 500')
+    expect(wrapper.text()).not.toContain('请求 12.5K')
+    expect(wrapper.text()).not.toContain('Token 1.3M')
+    expect(wrapper.text()).not.toContain('成本 $8.75')
+    expect(wrapper.text()).not.toContain('用户 $9.50')
   })
 
   it('renders upstream account type aliases instead of blank chips', () => {
