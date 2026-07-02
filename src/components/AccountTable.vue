@@ -150,5 +150,8 @@ const usagePercent = (item: UsageProgress | null | undefined) => {
 
 const usageAmount = (item: UsageProgress | null | undefined) => `${usagePercent(item)}%`
 
-const usageResetText = (item: UsageProgress | null | undefined) => formatDurationUntil(item?.resets_at, props.now)
+const usageResetText = (item: UsageProgress | null | undefined) => {
+  if (!item?.resets_at) return ''
+  return formatDurationUntil(item.resets_at, props.now)
+}
 </script>

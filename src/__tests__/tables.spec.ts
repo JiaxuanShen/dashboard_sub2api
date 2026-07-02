@@ -206,7 +206,12 @@ describe('read-only dashboard tables', () => {
 
   it('renders an active OpenAI OAuth account row with inline usage', () => {
     const wrapper = mount(AccountTable, {
-      props: { rows: [activeOpenAiAccount], usageByAccountId: { 1: accountUsage }, usageLoading: false },
+      props: {
+        rows: [activeOpenAiAccount],
+        usageByAccountId: { 1: accountUsage },
+        usageLoading: false,
+        now: new Date('2026-06-24T13:00:00Z').getTime(),
+      },
     })
 
     expect(wrapper.text()).toContain('openai-main')
@@ -216,6 +221,7 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).toContain('42%')
     expect(wrapper.text()).toContain('7d')
     expect(wrapper.text()).toContain('91%')
+    expect(wrapper.findAll('.reset-text--account').map((item) => item.text())).toEqual(['2 小时 0 分钟后重置'])
     expect(wrapper.findAll('button')).toHaveLength(0)
   })
 

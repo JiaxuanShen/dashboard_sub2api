@@ -10,12 +10,6 @@
           </span>
         </div>
 
-        <div class="toolbar__copy">
-          <p class="eyebrow">运维浏览</p>
-          <h1>订阅与账号状态</h1>
-          <p>查看订阅用量、账号容量、调度状态和账号用量。</p>
-        </div>
-
         <button class="refresh-button" type="button" :disabled="loading" @click="refreshAll">
           {{ loading ? '刷新中...' : '刷新' }}
         </button>
