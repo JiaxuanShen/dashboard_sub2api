@@ -134,7 +134,15 @@ async function handleDashboardSystem(req, res, url, options) {
   }
 
   if (req.method === 'POST' && url.pathname === '/dashboard-system/restart') {
-    sendJson(res, 200, await options.updater.restart())
+    // Respond before restarting this process; systemd may terminate the
+    // current server while handling the restart command, which otherwise
+    // makes the reverse proxy report a misleading 502 to the client.
+    sendJson(res, 202, { message: 'Dashboard restart scheduled' })
+    setImmediate(() => {
+      options.updater.restart().catch((error) => {
+        console.error('Dashboard restart failed:', error)
+      })
+    })
     return
   }
 

@@ -158,9 +158,10 @@ describe('dashboard server', () => {
 
     const headers = { 'x-dashboard-update-key': 'update-secret' }
     await expect((await fetch(`${startedDashboard.baseUrl}/dashboard-system/update`, { method: 'POST', headers })).json()).resolves.toMatchObject({ message: 'updated' })
-    await expect((await fetch(`${startedDashboard.baseUrl}/dashboard-system/restart`, { method: 'POST', headers })).json()).resolves.toMatchObject({ message: 'restarted' })
+    await expect((await fetch(`${startedDashboard.baseUrl}/dashboard-system/restart`, { method: 'POST', headers })).json()).resolves.toMatchObject({ message: 'Dashboard restart scheduled' })
     await expect((await fetch(`${startedDashboard.baseUrl}/dashboard-system/rollback`, { method: 'POST', headers })).json()).resolves.toMatchObject({ message: 'rolled back' })
 
+    await new Promise((resolve) => setImmediate(resolve))
     expect(calls).toEqual(['update', 'restart', 'rollback'])
   })
 })
