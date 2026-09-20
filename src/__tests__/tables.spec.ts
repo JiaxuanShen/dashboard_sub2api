@@ -225,7 +225,7 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.findAll('button')).toHaveLength(0)
   })
 
-  it('renders rich account capacity and compact usage windows without quota or spend stats', () => {
+  it('renders rich account capacity, usage windows, and account spend stats', () => {
     const wrapper = mount(AccountTable, {
       props: {
         rows: [activeOpenAiAccount],
@@ -247,8 +247,8 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).not.toContain('120 / 500')
     expect(wrapper.text()).not.toContain('请求 12.5K')
     expect(wrapper.text()).not.toContain('Token 1.3M')
-    expect(wrapper.text()).not.toContain('成本 $8.75')
-    expect(wrapper.text()).not.toContain('用户 $9.50')
+    expect(wrapper.text()).toContain('计费 $8.75')
+    expect(wrapper.text()).toContain('预计总费用 $9.50')
   })
 
   it('renders upstream account type aliases instead of blank chips', () => {

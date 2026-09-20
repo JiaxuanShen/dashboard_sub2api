@@ -32,6 +32,10 @@
       </div>
       <div class="usage-stack">
         <template v-if="usageByAccountId?.[row.id]">
+          <template v-if="accountWindowStats(usageByAccountId[row.id])">
+            <div class="stats-line">计费 {{ formatCurrency(accountWindowStats(usageByAccountId[row.id])?.cost) }}</div>
+            <div class="stats-line">预计总费用 {{ formatCurrency(accountWindowStats(usageByAccountId[row.id])?.user_cost) }}</div>
+          </template>
           <UsageBar
             v-if="usageByAccountId[row.id]?.five_hour"
             label="5h"
@@ -149,6 +153,9 @@ const usagePercent = (item: UsageProgress | null | undefined) => {
 }
 
 const usageAmount = (item: UsageProgress | null | undefined) => `${usagePercent(item)}%`
+
+const accountWindowStats = (usage: AccountUsageInfo | null | undefined) =>
+  usage?.five_hour?.window_stats ?? usage?.seven_day?.window_stats ?? usage?.seven_day_sonnet?.window_stats ?? null
 
 const usageResetText = (item: UsageProgress | null | undefined) => {
   if (!item?.resets_at) return ''
