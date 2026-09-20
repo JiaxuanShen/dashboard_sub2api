@@ -32,10 +32,9 @@
       </div>
       <div class="usage-stack">
         <template v-if="usageByAccountId?.[row.id]">
-          <template v-if="accountWindowStats(usageByAccountId[row.id])">
-            <div class="stats-line">计费 {{ formatCurrency(accountWindowStats(usageByAccountId[row.id])?.cost) }}</div>
-            <div class="stats-line">预计总费用 {{ formatCurrency(accountWindowStats(usageByAccountId[row.id])?.user_cost) }}</div>
-          </template>
+          <div v-if="windowCostLabel(usageByAccountId[row.id]?.five_hour, '5h')" class="stats-line">
+            {{ windowCostLabel(usageByAccountId[row.id]?.five_hour, '5h') }}
+          </div>
           <UsageBar
             v-if="usageByAccountId[row.id]?.five_hour"
             label="5h"
@@ -44,6 +43,12 @@
           />
           <div v-if="usageResetText(usageByAccountId[row.id]?.five_hour)" class="reset-text reset-text--account">
             {{ usageResetText(usageByAccountId[row.id]?.five_hour) }}
+          </div>
+          <div v-if="windowCostLabel(usageByAccountId[row.id]?.seven_day, '7d')" class="stats-line">
+            {{ windowCostLabel(usageByAccountId[row.id]?.seven_day, '7d') }}
+            <span v-if="estimatedTotalCost(usageByAccountId[row.id]?.seven_day)">
+              · {{ estimatedTotalCost(usageByAccountId[row.id]?.seven_day) }}
+            </span>
           </div>
           <UsageBar
             v-if="usageByAccountId[row.id]?.seven_day"
@@ -154,8 +159,21 @@ const usagePercent = (item: UsageProgress | null | undefined) => {
 
 const usageAmount = (item: UsageProgress | null | undefined) => `${usagePercent(item)}%`
 
-const accountWindowStats = (usage: AccountUsageInfo | null | undefined) =>
-  usage?.five_hour?.window_stats ?? usage?.seven_day?.window_stats ?? usage?.seven_day_sonnet?.window_stats ?? null
+const windowCostLabel = (item: UsageProgress | null | undefined, label: string) => {
+  const cost = item?.window_stats?.cost
+  if (typeof cost !== 'number' || !Number.isFinite(cost)) return ''
+  return `${label} 计费 ${formatCurrency(cost)}`
+}
+
+const estimatedTotalCost = (item: UsageProgress | null | undefined) => {
+  const cost = item?.window_stats?.cost
+  const utilization = item?.utilization
+  if (typeof cost !== 'number' || !Number.isFinite(cost) || cost <= 0) return ''
+  if (typeof utilization !== 'number' || !Number.isFinite(utilization) || utilization <= 0) return ''
+  const percent = utilization <= 1 ? utilization * 100 : utilization
+  if (percent <= 0) return ''
+  return `预计总费用 ${formatCurrency((cost * 100) / percent)}`
+}
 
 const usageResetText = (item: UsageProgress | null | undefined) => {
   if (!item?.resets_at) return ''

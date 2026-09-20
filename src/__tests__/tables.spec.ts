@@ -140,7 +140,16 @@ const accountUsage: AccountUsageInfo = {
     utilization: 91,
     resets_at: null,
     remaining_seconds: 0,
-    window_stats: null,
+    window_stats: {
+      start_time: '2026-06-24T00:00:00Z',
+      end_time: '2026-07-01T00:00:00Z',
+      requests: 1200,
+      input_tokens: 1000000,
+      output_tokens: 200000,
+      tokens: 1200000,
+      cost: 211.51,
+      user_cost: 211.51,
+    },
   },
   seven_day_sonnet: null,
 }
@@ -247,8 +256,9 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).not.toContain('120 / 500')
     expect(wrapper.text()).not.toContain('请求 12.5K')
     expect(wrapper.text()).not.toContain('Token 1.3M')
-    expect(wrapper.text()).toContain('计费 $8.75')
-    expect(wrapper.text()).toContain('预计总费用 $9.50')
+    expect(wrapper.text()).toContain('5h 计费 $8.75')
+    expect(wrapper.text()).toContain('7d 计费 $211.51')
+    expect(wrapper.text()).toContain('预计总费用 $232.43')
   })
 
   it('renders upstream account type aliases instead of blank chips', () => {
