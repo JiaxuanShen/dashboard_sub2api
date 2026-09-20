@@ -32,9 +32,6 @@
       </div>
       <div class="usage-stack">
         <template v-if="usageByAccountId?.[row.id]">
-          <div v-if="windowCostLabel(usageByAccountId[row.id]?.five_hour, '5h')" class="stats-line">
-            {{ windowCostLabel(usageByAccountId[row.id]?.five_hour, '5h') }}
-          </div>
           <UsageBar
             v-if="usageByAccountId[row.id]?.five_hour"
             label="5h"

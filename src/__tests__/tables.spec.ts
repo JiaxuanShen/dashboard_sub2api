@@ -256,7 +256,7 @@ describe('read-only dashboard tables', () => {
     expect(wrapper.text()).not.toContain('120 / 500')
     expect(wrapper.text()).not.toContain('请求 12.5K')
     expect(wrapper.text()).not.toContain('Token 1.3M')
-    expect(wrapper.text()).toContain('5h 计费 $8.75')
+    expect(wrapper.text()).not.toContain('5h 计费')
     expect(wrapper.text()).toContain('7d 计费 $211.51')
     expect(wrapper.text()).toContain('预计总费用 $232.43')
   })
